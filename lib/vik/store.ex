@@ -32,6 +32,11 @@ defmodule Vik.Store do
     GenServer.call(Server, {:ensure_compiled, slug}, :infinity)
   end
 
+  @spec mark_stale(Vik.slug()) :: :ok
+  def mark_stale(slug) do
+    GenServer.cast(Server, {:mark_stale, slug})
+  end
+
   @spec compile!(Vik.slug()) :: :ok
   def compile!(slug) do
     GenServer.cast(Server, {:compile, slug})
@@ -76,6 +81,15 @@ defmodule Vik.Store do
       state = maybe_compile_and_insert(state, shard)
 
       {:reply, Map.fetch!(state, slug), state}
+    end
+
+    @impl true
+    def handle_cast({:mark_stale, slug}, state) do
+      if data = Map.get(state, slug) do
+        {:noreply, Map.put(state, slug, Compiled.put_stale(data))}
+      else
+        {:noreply, state}
+      end
     end
 
     @impl true

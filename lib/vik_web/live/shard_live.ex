@@ -16,6 +16,7 @@ defmodule VikWeb.ShardLive do
   @impl true
   def handle_event("submit", %{"action" => "save", "shard" => params}, socket) do
      %Shard{} = shard = save_shard(socket.assigns.shard, params)
+     :ok = Store.mark_stale(shard.slug)
     {:noreply, assign_changeset(socket, shard)}
   end
 
@@ -54,7 +55,7 @@ defmodule VikWeb.ShardLive do
         rows="20"
       />
       
-      <div id="sidebar" class="flex gap-1">
+      <div id="sidebar" class="flex flex-col gap-1">
         <div class="flex gap-1">
           <.button id="save" class="flex-1 flex justify-center items-center gap-2" name="action" value="save">
             <.icon name="hero-server" /> <span data-disable-with="Saving...">Save</span>
