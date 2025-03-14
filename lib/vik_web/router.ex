@@ -17,7 +17,14 @@ defmodule VikWeb.Router do
   scope "/", VikWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", DashboardLive, :list
+    live "/new", NewLive, :live
+    live "/:slug", ShardLive, :edit
+  end
+
+  scope "/api", VikWeb do
+    pipe_through :api
+    get "/:slug", ShardController, :execute
   end
 
   # Other scopes may use custom stacks.

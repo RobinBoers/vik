@@ -2,4 +2,26 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-/* This file is for your main application CSS */
+@layer components {
+  #shard {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    grid-template-areas:
+      "editor sidebar"
+      "logs logs";
+    grid-template-rows: 1fr 200px;
+    gap: 0.5em;
+  }
+
+  #shard #code-wrapper {
+    grid-area: editor;
+  }
+}
+
+/* This hack is here because my SlowForm hook
+   is still disabling the button, but LiveView already
+   accepts click events, making firing multiple events
+   possible. This prevents that. */
+.phx-submit-loading button {
+  pointer-events: none;
+}

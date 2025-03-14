@@ -1,44 +1,97 @@
-// If you want to use Phoenix channels, run `mix help phx.gen.channel`
-// to get started and then uncomment the line below.
-// import "./user_socket.js"
+import "phoenix_html";
+import { Socket } from "phoenix";
+import { LiveSocket } from "phoenix_live_view";
+import topbar from "../vendor/topbar";
 
-// You can include dependencies in two ways.
-//
-// The simplest option is to put them in assets/vendor and
-// import them using relative paths:
-//
-//     import "../vendor/some-package.js"
-//
-// Alternatively, you can `npm install some-package --prefix assets` and import
-// them using a path starting with the package name:
-//
-//     import "some-package"
-//
+let Hooks = {};
 
-// Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
-import "phoenix_html"
-// Establish Phoenix Socket and LiveView configuration.
-import {Socket} from "phoenix"
-import {LiveSocket} from "phoenix_live_view"
-import topbar from "../vendor/topbar"
+// This hooks slows down the form submit to prevent flickering
+// buttons. Written by @marcofiset on the Elixir forum:
+// https://elixirforum.com/t/39831/7
+//
+// Modified by me to be compatible with the latest LiveView.
+Hooks.SlowSubmit = {
+  mounted() {
+    this.el.addEventListener("submit", (e) => this.handleSubmit(e));
+  },
 
-let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+  handleSubmit(event) {
+    // That's the key element that my previous implementation was missing!
+    // Since the element is re-rendered, I need to set the class again if
+    // we're still submitting.
+    const resetSubmitLoading = () => {
+      if (this.submitting) this.el.classList.add("phx-submit-loading");
+    };
+
+    window.addEventListener("phx:page-loading-stop", resetSubmitLoading, {
+      once: true,
+    });
+
+    this.setSubmitting(event);
+
+    const wait = new Promise((resolve, reject) => {
+      setTimeout(() => resolve(), this.el.dataset.minLoadingTime || 500);
+    });
+
+    const loading = new Promise((resolve, reject) => {
+      window.addEventListener("phx:page-loading-stop", () => resolve(), {
+        once: true,
+      });
+    });
+
+    Promise.all([wait, loading]).then(() => this.stopSubmitting(event));
+  },
+
+  setSubmitting(event) {
+    this.submitting = true;
+    this.el.classList.add("phx-submit-loading");
+
+    event.submitter.querySelectorAll("[data-disable-with]").forEach((el) => {
+      const html = el.innerHTML;
+      el.innerText = el.getAttribute("data-disable-with");
+      el.setAttribute("data-disable-with", html);
+    });
+  },
+
+  stopSubmitting(event) {
+    this.submitting = false;
+    this.el.classList.remove("phx-submit-loading");
+
+    event.submitter.querySelectorAll("[data-disable-with]").forEach((el) => {
+      const html = el.getAttribute("data-disable-with");
+      el.setAttribute("data-disable-with", el.innerText);
+      el.innerHTML = html;
+    });
+  },
+};
+
+let csrfToken = document
+  .querySelector("meta[name='csrf-token']")
+  .getAttribute("content");
+
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
-})
+  params: { _csrf_token: csrfToken },
+  hooks: Hooks,
+});
 
-// Show progress bar on live navigation and form submits
-topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
-window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
-window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
+topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
+window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
+window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
 
-// connect if there are any LiveViews on the page
-liveSocket.connect()
+document.addEventListener("phx:submit-loading", (event) => {
+  console.log(event);
+  setTimeout(() => {
+    event.target.querySelectorAll("button").forEach((b) => {
+      b.classList.add("phx-submit-loading:opacity-75");
+    });
+  }, 300);
+});
 
-// expose liveSocket on window for web console debug logs and latency simulation:
-// >> liveSocket.enableDebug()
-// >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
-// >> liveSocket.disableLatencySim()
-window.liveSocket = liveSocket
+liveSocket.connect();
 
+// liveSocket.enableDebug();
+// liveSocket.enableLatencySim(1000); // enabled for duration of browser session
+// liveSocket.disableLatencySim();
+
+window.liveSocket = liveSocket;
