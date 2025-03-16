@@ -2,14 +2,15 @@ defmodule Vik.Application do
   @moduledoc false
   use Application
 
+  # TODO(robin): attempt to deploy all Shards on startup :)
+
   @impl true
   def start(_type, _args) do
     children = [
       VikWeb.Telemetry,
       Vik.Repo,
       Vik.Store,
-      {DNSCluster, query: Application.get_env(:vik, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: Vik.PubSub},
+      Vik.PubSub,
       VikWeb.Endpoint
     ]
 

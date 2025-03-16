@@ -6,11 +6,33 @@ defmodule VikWeb.ShardLive do
   alias Vik.Store
   alias Vik.Shard
   alias Vik.Compiled
+  alias Vik.PubSub
+  alias Vik.Thread
 
+  # TODO(robin): disable deploy button during long compilations
+
+  require Logger
+  
   @impl true
   def mount(%{"slug" => slug}, _session, socket) do
-    %Shard{} = shard = Repo.get_by(Shard, slug: slug)
-    {:ok, assign_changeset(socket, shard)}
+    case Repo.get_by(Shard, slug: slug) do
+      %Shard{} = shard -> {:ok, mount_shard(socket, shard)}
+      nil -> raise Vik.ShardNotFound
+    end
+  end
+
+  defp mount_shard(socket, shard) do
+    PubSub.subscribe(shard.slug)
+
+    socket
+    |> assign(:task, nil)
+    |> assign(:status, Store.status(shard))
+    |> assign_changeset(shard)
+  end
+
+  defp assign_changeset(socket, shard) do
+    %Ecto.Changeset{} = changeset = Shard.save_changeset(shard)
+    assign(socket, shard: shard, changeset: changeset)
   end
 
   @impl true
@@ -23,19 +45,50 @@ defmodule VikWeb.ShardLive do
   @impl true
   def handle_event("submit", %{"action" => "deploy", "shard" => params}, socket) do
     %Shard{} = shard = save_shard(socket.assigns.shard, params)
-    :ok = Store.recompile!(shard.slug)
-    {:noreply, assign_changeset(socket, shard)}
+    %Socket{} = socket = assign_changeset(socket, shard)
+
+    if socket.assigns.task do
+      {:noreply, put_flash(socket, :error, "Cannot run deploy in parallel.")}
+    else
+      {:noreply, assign(socket, task: launch_compile_worker(shard))}
+    end
   end
 
-  defp assign_changeset(socket, shard) do
-    %Ecto.Changeset{} = changeset = Shard.save_changeset(shard)
-    assign(socket, shard: shard, changeset: changeset)
+  @impl true
+  def handle_event("cancel-deploy", _params, socket) do
+    if task = socket.assigns.task do
+      Task.shutdown(task)
+      {:noreply, assign(socket, :task, nil)}
+    else
+      {:noreply, put_flash(socket, :error, "Terminating deploy failed: task not alive.")}
+    end
   end
 
   def save_shard(shard, params) do
     shard
     |> Shard.save_changeset(params)
     |> Repo.update!()
+  end
+
+  defp launch_compile_worker(shard) do
+    Task.async(fn -> Thread.eval(shard) end)
+  end
+
+  @impl true
+  def handle_info({:status, status}, socket) do
+    {:noreply, assign(socket, :status, status)}
+  end
+
+  @impl true
+  def handle_info({ref, _outcome}, socket) when socket.assigns.task.ref == ref do
+    Process.demonitor(ref, [:flush])
+    {:noreply, assign(socket, :task, nil)}
+  end
+
+  @impl true
+  def handle_info(message, socket) do
+    Logger.warning("Got unexpected message: #{inspect(message)}")
+    {:noreply, socket}
   end
 
   @impl true

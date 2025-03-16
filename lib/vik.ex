@@ -1,7 +1,7 @@
 defmodule Vik do
   @moduledoc """
-  The public API all Vik shards have access to;
-  imported by default.
+  The public API all Shards have access to; imported
+  by default.
   """
 
   @type slug :: String.t()

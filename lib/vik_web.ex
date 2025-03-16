@@ -55,6 +55,8 @@ defmodule VikWeb do
       use Phoenix.LiveView,
         layout: {VikWeb.Layouts, :app}
 
+      alias Phoenix.LiveView.Socket
+
       unquote(html_helpers())
     end
   end

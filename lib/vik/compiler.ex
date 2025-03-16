@@ -1,9 +1,12 @@
 defmodule Vik.Compiler do
-  @moduledoc false
+  @moduledoc """
+  Compiles the Shards into actual Elixir modules living
+  in the Erlang VM.
+  """
 
   alias Vik.Shard
   alias Vik.Compiled
-  alias Vik.Store
+  alias Vik.Thread
 
   @type slug :: Vik.slug()
   @type source :: String.t()
@@ -14,25 +17,24 @@ defmodule Vik.Compiler do
 
   Returns the resulting module and any exports. 
   """
-  @spec compile(Shard.t()) :: {:ok, term(), [module()]} | {:error, term()}
-  def compile(%Shard{} = shard) do
-    {result, exports} = compile!(shard)
+  @spec eval(Shard.t()) :: {:ok, term(), [module()]} | {:error, term()}
+  def eval(%Shard{} = shard) do
+    {result, exports} = eval!(shard)
     {:ok, result, exports}
   rescue
     reason -> {:error, reason}
   end
 
-
   @doc """
-  Same as `compile/1`, but raises if something crashes
+  Same as `eval/1`, but raises if something crashes
   during compilation.
   """
-  @spec compile!(Shard.t()) :: {term(), [module()]}
-  def compile!(%Shard{source_code: source} = shard) when is_nil(source) do
-    compile!(%Shard{shard | source_code: ""})
+  @spec eval!(Shard.t()) :: {term(), [module()]}
+  def eval!(%Shard{source_code: source} = shard) when is_nil(source) do
+    eval!(%Shard{shard | source_code: ""})
   end
 
-  def compile!(%Shard{slug: slug, source_code: source}) do
+  def eval!(%Shard{slug: slug, source_code: source}) do
     exports = extract_exports(slug, source)
     quoted = build_quoted!(slug, source)
 
@@ -90,12 +92,8 @@ defmodule Vik.Compiler do
     includes = extract_includes(source)
     
     for slug <- includes do
-      # TODO(robin): deps like this cuase the GenServer to
-      # call itself, which then shuts down the entire application
-      # for some reason. Oops!
-      # %Compiled{} = compiled = Store.ensure_compiled!(slug)
-      # compiled.exports
-      []
+      %Compiled{} = compiled = Thread.ensure_compiled!(slug)
+      compiled.exports
     end
   end
 

@@ -1,0 +1,66 @@
+defmodule Vik.Thread do
+  @moduledoc """
+  Manages compilation and side-effects.
+
+  - Communicates with the LiveViews over PubSub to
+    report on compiler logs, stale Shards etc.
+
+  - Ensures the Store is properly populated with the
+    results produced by the Compiler.
+
+  """
+
+  alias Vik.Shard
+  alias Vik.Repo
+  alias Vik.Compiled
+  alias Vik.Compiler
+  alias Vik.PubSub
+  alias Vik.Store
+
+  require Logger
+
+  @spec ensure_compiled!(Shard.t()) :: Compiled.t()
+  def ensure_compiled!(slug) when is_binary(slug) do
+    Shard |> Repo.get_by!(slug: slug) |> ensure_compiled!()
+  end
+
+  def ensure_compiled!(%Shard{} = shard) do
+    case Store.fetch(shard) do
+      {:ok, %Compiled{} = c} -> c
+      :error -> eval!(shard)
+    end
+  end
+
+  @spec eval(Shard.t()) :: {:ok, Compiled.t()} | {:error, Exception.t()}
+  def eval(%Shard{} = shard) do
+    case Compiler.eval(shard) do
+      {:ok, result, exports} ->
+        %Compiled{} = compiled = Compiled.new(result, exports)
+
+        PubSub.broadcast(shard.slug, {:status, :up})
+        Store.put(shard, compiled)
+
+        {:ok, compiled}
+
+      {:error, exception} ->
+        Logger.warning("Compilation of '#{shard.slug}' failed with: #{inspect(exception)}")
+
+        PubSub.broadcast(shard.slug, {:status, :stale})
+        Store.mark_stale(shard)
+
+        {:failed, exception}
+    end
+  end
+
+  @spec eval!(Shard.t()) :: Compiled.t()
+  def eval!(%Shard{} = shard) do
+    {result, exports} = Compiler.eval!(shard)
+
+    %Compiled{} = compiled = Compiled.new(result, exports)
+
+    PubSub.broadcast(shard.slug, {:status, :up})
+    Store.put(shard, compiled)
+
+    compiled
+  end
+end
