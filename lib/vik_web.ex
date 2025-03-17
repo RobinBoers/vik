@@ -61,6 +61,17 @@ defmodule VikWeb do
     end
   end
 
+  def live_hook do
+    quote do
+      import Phoenix.LiveView
+      import Phoenix.Component
+
+      alias Phoenix.LiveView.Socket
+
+      unquote(html_helpers())
+    end
+  end
+
   def live_component do
     quote do
       use Phoenix.LiveComponent

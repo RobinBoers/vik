@@ -6,6 +6,7 @@ defmodule VikWeb.NewLive do
   alias Vik.Shard
   alias Vik.PubSub
 
+  on_mount {VikWeb.SystemHandler, :static}
 
   @impl true
   def mount(_params, _session, socket) do

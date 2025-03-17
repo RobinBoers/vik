@@ -12,7 +12,11 @@ defmodule VikWeb.ShardLive do
   import VikWeb, only: [dot_color: 1]
 
   require Logger
-  
+
+  # TODO(robin): disable deploy button during long compilations
+
+  on_mount {VikWeb.SystemHandler, :static}
+
   @impl true
   def mount(%{"slug" => slug}, _session, socket) do
     case Repo.get_by(Shard, slug: slug) do
