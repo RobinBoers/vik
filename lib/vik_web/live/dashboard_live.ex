@@ -5,12 +5,27 @@ defmodule VikWeb.DashboardLive do
   alias Vik.Repo
   alias Vik.Store
   alias Vik.Shard
+  alias Vik.PubSub
 
   import Ecto.Query
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, shards: Repo.all(from s in Shard, order_by: [desc: s.updated_at]))}
+    {:ok, assign(socket, :shards, load_shards())}
+  end
+
+  @impl true
+  def handle_info({:status, _}, socket) do
+    {:noreply, assign(socket, :shards, load_shards())}
+  end
+
+  defp load_shards do
+    query = from s in Shard, order_by: [desc: s.updated_at]
+
+    for %Shard{} = shard <- Repo.all(query), into: %{} do
+      PubSub.subscribe(shard.slug)
+      {shard.slug, {shard, Store.status(shard)}}
+    end
   end
 
   @impl true
@@ -32,13 +47,17 @@ defmodule VikWeb.DashboardLive do
           </tr>
         </thead>
         <tbody class="divide-y divide-zinc-900/5">
-          <tr :for={shard <- @shards} phx-click={JS.navigate(~p"/#{shard.slug}")} class="hover:bg-zinc-50 cursor-pointer">
+          <tr
+            :for={{shard, status} <- Map.values(@shards)}
+            phx-click={JS.navigate(~p"/#{shard.slug}")}
+            class="hover:bg-zinc-50 cursor-pointer"
+          >
             <td class="py-4 pr-8">
               <h2 class="px-4">{shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span></h2>
             </td>
             <td class="py-4 pr-4 pl-0 text-sm/6 sm:pr-8 lg:pr-20">
               <div class="flex items-center justify-end gap-x-2">
-                <div class={"flex-none rounded-full p-1 #{shard.slug |> Store.status() |> status_color()}"}>
+                <div class={"flex-none rounded-full p-1 #{dot_color(status)}"}>
                   <div class="size-1.5 rounded-full bg-current"></div>
                 </div>
               </div>
@@ -53,8 +72,8 @@ defmodule VikWeb.DashboardLive do
     """
   end
 
-  defp status_color(:stale), do: "bg-amber-400/10 text-amber-400"
-  defp status_color(:up), do: "bg-green-400/10 text-green-400"
-  defp status_color(:down), do: "bg-red-400/10 text-red-400"
+  defp dot_color(:stale), do: "bg-amber-400/10 text-amber-400"
+  defp dot_color(:up), do: "bg-green-400/10 text-green-400"
+  defp dot_color(:down), do: "bg-red-400/10 text-red-400"
 end
 

@@ -95,7 +95,6 @@ defmodule Vik.Store do
 
     @impl true
     def handle_cast({:put, slug, data}, state) do
-      PubSub.broadcast(slug, {:status, :up})
       {:noreply, Map.put(state, slug, data)}
     end
 

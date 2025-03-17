@@ -37,16 +37,16 @@ defmodule Vik.Thread do
       {:ok, result, exports} ->
         %Compiled{} = compiled = Compiled.new(result, exports)
 
-        PubSub.broadcast(shard.slug, {:status, :up})
         Store.put(shard, compiled)
+        PubSub.broadcast(shard.slug, {:status, :up})
 
         {:ok, compiled}
 
       {:error, exception} ->
         Logger.warning("Compilation of '#{shard.slug}' failed with: #{inspect(exception)}")
 
-        PubSub.broadcast(shard.slug, {:status, :stale})
         Store.mark_stale(shard)
+        PubSub.broadcast(shard.slug, {:status, :stale})
 
         {:failed, exception}
     end
@@ -58,9 +58,17 @@ defmodule Vik.Thread do
 
     %Compiled{} = compiled = Compiled.new(result, exports)
 
-    PubSub.broadcast(shard.slug, {:status, :up})
     Store.put(shard, compiled)
+    PubSub.broadcast(shard.slug, {:status, :up})
 
     compiled
+  end
+
+  @spec mark_stale(Shard.t()) :: :ok
+  def mark_stale(%Shard{} = shard) do
+    Store.mark_stale(shard.slug)
+    PubSub.broadcast(shard.slug, {:status, :stale})
+
+    :ok
   end
 end

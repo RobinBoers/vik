@@ -38,7 +38,7 @@ defmodule VikWeb.ShardLive do
   @impl true
   def handle_event("submit", %{"action" => "save", "shard" => params}, socket) do
      %Shard{} = shard = save_shard(socket.assigns.shard, params)
-     :ok = Store.mark_stale(shard.slug)
+     Thread.mark_stale(shard)
     {:noreply, assign_changeset(socket, shard)}
   end
 
@@ -64,16 +64,6 @@ defmodule VikWeb.ShardLive do
     end
   end
 
-  def save_shard(shard, params) do
-    shard
-    |> Shard.save_changeset(params)
-    |> Repo.update!()
-  end
-
-  defp launch_compile_worker(shard) do
-    Task.async(fn -> Thread.eval(shard) end)
-  end
-
   @impl true
   def handle_info({:status, status}, socket) do
     {:noreply, assign(socket, :status, status)}
@@ -85,10 +75,14 @@ defmodule VikWeb.ShardLive do
     {:noreply, assign(socket, :task, nil)}
   end
 
-  @impl true
-  def handle_info(message, socket) do
-    Logger.warning("Got unexpected message: #{inspect(message)}")
-    {:noreply, socket}
+  def save_shard(shard, params) do
+    shard
+    |> Shard.save_changeset(params)
+    |> Repo.update!()
+  end
+
+  defp launch_compile_worker(shard) do
+    Task.async(fn -> Thread.eval(shard) end)
   end
 
   @impl true
