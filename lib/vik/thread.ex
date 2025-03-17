@@ -66,8 +66,10 @@ defmodule Vik.Thread do
 
   @spec mark_stale(Shard.t()) :: :ok
   def mark_stale(%Shard{} = shard) do
-    Store.mark_stale(shard.slug)
-    PubSub.broadcast(shard.slug, {:status, :stale})
+    if Store.status(shard) == :up do
+      Store.mark_stale(shard.slug)
+      PubSub.broadcast(shard.slug, {:status, :stale})
+    end 
 
     :ok
   end
