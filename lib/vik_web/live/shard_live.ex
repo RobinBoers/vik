@@ -9,7 +9,7 @@ defmodule VikWeb.ShardLive do
   alias Vik.PubSub
   alias Vik.Thread
 
-  # TODO(robin): disable deploy button during long compilations
+  import VikWeb, only: [dot_color: 1]
 
   require Logger
   
@@ -110,6 +110,13 @@ defmodule VikWeb.ShardLive do
           <.button id="deploy" class="flex-1 flex justify-center items-center gap-2" name="action" value="deploy">
             <.icon name="hero-cloud" /> <span data-disable-with="Compiling...">Deploy</span>
           </.button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <h2 class="font-bold text-2xl my-3 ml-2">{@shard.title}</h2>
+          <div class={"flex-none rounded-full p-1 #{dot_color(@status)}"}>
+            <div class="size-1.5 rounded-full bg-current"></div>
+          </div>
         </div>
       </div>
     </.form>

@@ -115,4 +115,8 @@ defmodule VikWeb do
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
   end
+
+  def dot_color(:stale), do: "bg-amber-400/10 text-amber-400"
+  def dot_color(:up), do: "bg-green-400/10 text-green-400"
+  def dot_color(:down), do: "bg-red-400/10 text-red-400"
 end
