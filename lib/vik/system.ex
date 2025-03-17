@@ -68,7 +68,7 @@ defmodule Vik.System do
     |> File.read!() 
     |> String.trim()
   rescue
-    e -> System.otp_release()
+    _ -> System.otp_release()
   end
 
   @doc false

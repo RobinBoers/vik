@@ -193,7 +193,6 @@ defmodule VikWeb.DashboardLive do
   attr :title, :integer, required: true
   attr :current, :integer, required: true
   attr :limit, :integer, required: true
-  attr :percent, :float, required: true
 
   defp usage(assigns) do
     ~H"""

@@ -6,7 +6,6 @@ defmodule Vik.Store do
 
   alias Vik.Shard
   alias Vik.Compiled
-  alias Vik.PubSub
 
   @type state :: %{Vik.slug() => Compiled.t()}
   @type status :: :up | :down | :stale

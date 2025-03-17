@@ -29,7 +29,7 @@ defmodule VikWeb.SystemHandler do
     {:halt, assign_system_info(socket)}
   end
   
-  def handle_info(message, socket) do
+  def handle_info(_message, socket) do
     {:cont, socket}
   end
 
