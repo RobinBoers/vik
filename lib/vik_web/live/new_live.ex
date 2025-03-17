@@ -4,6 +4,8 @@ defmodule VikWeb.NewLive do
 
   alias Vik.Repo
   alias Vik.Shard
+  alias Vik.PubSub
+
 
   @impl true
   def mount(_params, _session, socket) do
@@ -21,6 +23,7 @@ defmodule VikWeb.NewLive do
   def handle_event("create", %{"shard" => params}, socket) do
     case params |> Shard.new_changeset() |> Repo.insert() do
       {:ok, %Shard{} = shard} ->
+        PubSub.broadcast("vik:dashboard", {:new, shard})
         {:noreply, push_navigate(socket, to: ~p"/#{shard.slug}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->

@@ -11,11 +11,17 @@ defmodule VikWeb.DashboardLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    PubSub.subscribe("vik:dashboard")
     {:ok, assign(socket, :shards, load_shards())}
   end
 
   @impl true
   def handle_info({:status, _}, socket) do
+    {:noreply, assign(socket, :shards, load_shards())}
+  end
+
+  @impl true
+  def handle_info({:new, _}, socket) do
     {:noreply, assign(socket, :shards, load_shards())}
   end
 
