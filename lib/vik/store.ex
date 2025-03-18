@@ -31,6 +31,17 @@ defmodule Vik.Store do
     end
   end
 
+  @spec get(Shard.t()) :: Compiled.t() | nil
+  @spec get(Vik.slug()) :: Compiled.t() | nil
+  def get(%Shard{} = shard), do: get(shard.slug)
+
+  def get(slug) do
+    case fetch(slug) do
+      {:ok, compiled} -> compiled
+      :error -> nil
+    end
+  end
+
   @spec put(Shard.t(), Compiled.t()) :: :ok
   @spec put(Vik.slug(), Compiled.t()) :: :ok
   def put(%Shard{} = shard, data), do: put(shard.slug, data)

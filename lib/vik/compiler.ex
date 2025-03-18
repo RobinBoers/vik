@@ -17,10 +17,10 @@ defmodule Vik.Compiler do
 
   Returns the resulting module and any exports. 
   """
-  @spec eval(Shard.t()) :: {:ok, term(), [module()]} | {:error, term()}
+  @spec eval(Shard.t()) :: {:ok, term(), [module()], [slug()]} | {:error, term()}
   def eval(%Shard{} = shard) do
-    {result, exports} = eval!(shard)
-    {:ok, result, exports}
+    {result, exports, includes} = eval!(shard)
+    {:ok, result, exports, includes}
   rescue
     reason -> {:error, reason}
   end
@@ -29,24 +29,25 @@ defmodule Vik.Compiler do
   Same as `eval/1`, but raises if something crashes
   during compilation.
   """
-  @spec eval!(Shard.t()) :: {term(), [module()]}
+  @spec eval!(Shard.t()) :: {term(), [module()], [slug()]}
   def eval!(%Shard{source_code: source} = shard) when is_nil(source) do
     eval!(%Shard{shard | source_code: ""})
   end
 
   def eval!(%Shard{slug: slug, source_code: source}) do
     exports = extract_exports(slug, source)
-    quoted = build_quoted!(slug, source)
+    includes = extract_includes(source)
+    quoted = build_quoted!(slug, source, includes)
 
     {result, _binding} = Code.eval_quoted(quoted)
-    {result, exports}
+    {result, exports, includes}
   end
 
-  @spec build_quoted!(slug(), source()) :: quoted()
-  defp build_quoted!(slug, source) when is_binary(source) do
+  @spec build_quoted!(slug(), source(), [slug()]) :: quoted()
+  defp build_quoted!(slug, source, includes) when is_binary(source) do
     mod = slug |> module_name() |> Module.concat()
+    dependencies = resolve_includes!(includes)
     quoted = Code.string_to_quoted!(source)
-    includes = resolve_includes!(source)
     
     quote do
       defmodule unquote(mod) do
@@ -57,7 +58,7 @@ defmodule Vik.Compiler do
         @includes []
 
         unquote_splicing(
-          for exports <- includes,
+          for exports <- dependencies,
               module <- exports do
             quote do
               alias unquote(module)
@@ -89,8 +90,11 @@ defmodule Vik.Compiler do
   
   @spec resolve_includes!(source()) :: [[module()]]
   defp resolve_includes!(source) when is_binary(source) do
-    includes = extract_includes(source)
-    
+    source |> extract_includes() |> resolve_includes!()
+  end
+
+  @spec resolve_includes!([slug()]) :: [[module()]]
+  defp resolve_includes!(includes) when is_list(includes) do    
     for slug <- includes do
       %Compiled{} = compiled = Thread.ensure_compiled!(slug)
       compiled.exports

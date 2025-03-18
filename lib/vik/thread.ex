@@ -34,8 +34,9 @@ defmodule Vik.Thread do
   @spec eval(Shard.t()) :: {:ok, Compiled.t()} | {:error, Exception.t()}
   def eval(%Shard{} = shard) do
     case Compiler.eval(shard) do
-      {:ok, result, exports} ->
-        %Compiled{} = compiled = Compiled.new(result, exports)
+      {:ok, result, exports, includes} ->
+        %Compiled{} = compiled =
+          Compiled.new(result, exports, includes)
 
         Store.put(shard, compiled)
         PubSub.broadcast(shard.slug, {:status, :up})
@@ -54,9 +55,10 @@ defmodule Vik.Thread do
 
   @spec eval!(Shard.t()) :: Compiled.t()
   def eval!(%Shard{} = shard) do
-    {result, exports} = Compiler.eval!(shard)
+    {result, exports, includes} = Compiler.eval!(shard)
 
-    %Compiled{} = compiled = Compiled.new(result, exports)
+    %Compiled{} = compiled = 
+      Compiled.new(result, exports, includes)
 
     Store.put(shard, compiled)
     PubSub.broadcast(shard.slug, {:status, :up})

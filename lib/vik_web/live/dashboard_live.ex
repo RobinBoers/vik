@@ -115,7 +115,9 @@ defmodule VikWeb.DashboardLive do
                 class="hover:bg-zinc-50 cursor-pointer"
               >
                 <td class="py-4 pr-8">
-                  <h2 class="px-4">{shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span></h2>
+                  <h2 class="px-4">
+                    {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
+                  </h2>
                 </td>
                 <td class="py-4 pr-4 pl-0 text-sm/6 sm:pr-8 lg:pr-20">
                   <div class="flex items-center justify-end gap-x-2">
