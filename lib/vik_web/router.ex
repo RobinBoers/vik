@@ -25,6 +25,7 @@ defmodule VikWeb.Router do
   scope "/api", VikWeb do
     pipe_through :api
     get "/:slug", ShardController, :execute
+    post "/:slug", ShardController, :execute
   end
 
   # Other scopes may use custom stacks.
