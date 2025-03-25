@@ -9,16 +9,16 @@ defmodule VikWeb.ShardController do
 
   import Structo
 
-  def execute(conn, %{"slug" => slug}) do
+  def execute(conn, ~m{slug}s = data) do
     case Repo.get_by(Shard, slug: slug) do
-      %Shard{} = shard -> try_execute(conn, shard)
+      %Shard{} = shard -> try_execute(conn, shard, data)
       nil -> raise Vik.ShardNotFound, slug
     end
   end
 
-  defp try_execute(conn, shard) do
+  defp try_execute(conn, shard, data) do
     if module = find_callable(shard) do
-      module.call(conn, [])
+      module.call(conn, params: data)
     else
       raise Vik.ShardNotExposed, shard
     end
