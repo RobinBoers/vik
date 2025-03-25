@@ -50,7 +50,11 @@ defmodule Vik.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:typedstruct, "~> 0.5.3"},
-      {:structo, "~> 0.1.2"}
+      {:structo, "~> 0.1.2"},
+
+      # Useful in Shards
+      {:wallaby, "~> 0.30.0"},
+      {:req, "~> 0.5.10"}
     ]
   end
 
