@@ -28,10 +28,12 @@ defmodule VikWeb.ShardLive do
 
   defp mount_shard(socket, shard) do
     PubSub.subscribe(shard.slug)
+    Vik.IOHandler.subscribe()
 
     socket
     |> assign(:task, nil)
     |> assign(:status, Store.status(shard))
+    |> stream(:logs, [])
     |> assign_compiled(shard)
     |> assign_changeset(shard)
   end
@@ -82,6 +84,11 @@ defmodule VikWeb.ShardLive do
     else
       {:noreply, put_flash(socket, :error, "Terminating deploy failed: task not alive.")}
     end
+  end
+
+  @impl true
+  def handle_info({:lines, lines}, socket) do
+    {:noreply, stream(socket, :logs, List.wrap(lines))}
   end
 
   @impl true
@@ -165,6 +172,10 @@ defmodule VikWeb.ShardLive do
             </li>
           </ul>
         </div>
+      </div>
+
+      <div id="logs" class="font-mono" phx-update="stream">
+        <p class="line" :for={{dom_id, line} <- @streams.logs} id={dom_id}>{line}</p>
       </div>
     </.form>
     """
