@@ -16,6 +16,10 @@
   #shard #code-wrapper {
     grid-area: editor;
   }
+
+  #shard #logs {
+    grid-area: logs;
+  }
 }
 
 /* This hack is here because my SlowForm hook
