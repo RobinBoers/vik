@@ -16,7 +16,7 @@ defmodule Vik.MixProject do
   def application do
     [
       mod: {Vik.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :ex_unit]
     ]
   end
 
