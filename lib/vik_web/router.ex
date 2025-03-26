@@ -8,6 +8,7 @@ defmodule VikWeb.Router do
     plug :put_root_layout, html: {VikWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :basic_auth
   end
 
   pipeline :api do
@@ -32,4 +33,10 @@ defmodule VikWeb.Router do
   # scope "/api", VikWeb do
   #   pipe_through :api
   # end
+
+  defp basic_auth(conn, _opts) do
+    username = System.get_env("AUTH_USERNAME", "dummy")
+    password = System.get_env("AUTH_PASSWORD", "vikingsarecool")
+    Plug.BasicAuth.basic_auth(conn, username: username, password: password)
+  end
 end
