@@ -5,6 +5,12 @@ import topbar from "../vendor/topbar";
 
 let Hooks = {};
 
+Hooks.Scroll = {
+  updated() {
+    this.el.scrollTop = this.el.scrollHeight;
+  }
+};
+
 // This hooks slows down the form submit to prevent flickering
 // buttons. Written by @marcofiset on the Elixir forum:
 // https://elixirforum.com/t/39831/7

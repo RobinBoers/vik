@@ -11,7 +11,6 @@ defmodule Vik.Application do
       Vik.Repo,
       Vik.Store,
       Vik.PubSub,
-      Vik.IOHandler,
       VikWeb.Endpoint
     ]
 

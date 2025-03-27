@@ -16,6 +16,7 @@ defmodule Vik.Thread do
   alias Vik.Compiler
   alias Vik.PubSub
   alias Vik.Store
+  alias Vik.IO
 
   require Logger
 
@@ -33,7 +34,7 @@ defmodule Vik.Thread do
 
   @spec eval(Shard.t()) :: {:ok, Compiled.t()} | {:error, Exception.t()}
   def eval(%Shard{} = shard) do
-    case Compiler.eval(shard) do
+    case evaluate_captured(shard) do
       {:ok, result, exports, includes} ->
         %Compiled{} = compiled =
           Compiled.new(result, exports, includes)
@@ -47,6 +48,7 @@ defmodule Vik.Thread do
         Logger.warning("Compilation of '#{shard.slug}' failed with: #{inspect(exception)}")
 
         Store.mark_stale(shard)
+        PubSub.broadcast(shard.slug, {:exception, exception})
         PubSub.broadcast(shard.slug, {:status, :stale})
 
         {:failed, exception}
@@ -74,5 +76,22 @@ defmodule Vik.Thread do
     end 
 
     :ok
+  end
+
+  defp evaluate_captured(%Shard{} = shard) do
+    PubSub.broadcast(shard.slug, {:stdout, """
+    => Compiling #{shard.slug}
+    """})
+  
+    {result, stdout, stderr} = 
+      IO.capture(fn -> Compiler.eval(shard) end)
+
+    PubSub.broadcast(shard.slug, {:stdout, stdout})
+    PubSub.broadcast(shard.slug, {:stderr, stderr})
+    PubSub.broadcast(shard.slug, {:stdout, """
+    Generated #{shard.slug} shard
+    """})
+      
+    result
   end
 end

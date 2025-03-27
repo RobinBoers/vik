@@ -28,15 +28,17 @@ defmodule VikWeb.ShardLive do
 
   defp mount_shard(socket, shard) do
     PubSub.subscribe(shard.slug)
-    Vik.IOHandler.subscribe()
 
     socket
     |> assign(:task, nil)
     |> assign(:status, Store.status(shard))
+    |> stream_configure(:logs, dom_id: &dom_id/1)
     |> stream(:logs, [])
     |> assign_compiled(shard)
     |> assign_changeset(shard)
   end
+
+  defp dom_id(_), do: :crypto.strong_rand_bytes(8) |> Base.encode16()
 
   defp assign_compiled(socket, shard) do
     if compiled = Store.get(shard) do
@@ -89,6 +91,22 @@ defmodule VikWeb.ShardLive do
   @impl true
   def handle_info({:lines, lines}, socket) do
     {:noreply, stream(socket, :logs, List.wrap(lines))}
+  end
+
+  @impl true
+  def handle_info({:exception, e}, socket) do
+    message = Exception.format(:error, e)
+    {:noreply, stream(socket, :logs, [message])}
+  end
+  
+  @impl true
+  def handle_info({:stdout, lines}, socket) do
+    {:noreply, stream(socket, :logs, [lines])}
+  end
+  
+  @impl true
+  def handle_info({:stderr, lines}, socket) do
+    {:noreply, stream(socket, :logs, [lines])}
   end
 
   @impl true
@@ -174,8 +192,8 @@ defmodule VikWeb.ShardLive do
         </div>
       </div>
 
-      <div id="logs" class="font-mono" phx-update="stream">
-        <p class="line" :for={{dom_id, line} <- @streams.logs} id={dom_id}>{line}</p>
+      <div id="logs" class="font-mono overflow-auto" phx-update="stream" phx-hook="Scroll">
+        <pre class="line" :for={{dom_id, line} <- @streams.logs} id={dom_id}>{line}</pre>
       </div>
     </.form>
     """

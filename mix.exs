@@ -7,10 +7,15 @@ defmodule Vik.MixProject do
       version: "0.1.0",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
+      elixirc_options: compiler(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps()
     ]
+  end
+
+  def compiler do
+    [ignore_module_conflict: true]
   end
 
   def application do
