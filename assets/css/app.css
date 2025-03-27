@@ -4,6 +4,7 @@
 
 @layer components {
   #shard {
+    height: 100%;
     display: grid;
     grid-template-columns: 1fr 350px;
     grid-template-areas:
@@ -20,6 +21,18 @@
   #shard #logs {
     grid-area: logs;
   }
+}
+
+/* Hacks to ensure my layout doesn't fuck itself up
+   due to elements inserted by Phoenix LiveView. */
+html, body {
+  @apply h-full;
+}
+body > div {
+  @apply h-full flex flex-col;
+}
+body > div > main {
+  @apply flex-grow;
 }
 
 /* This hack is here because my SlowForm hook

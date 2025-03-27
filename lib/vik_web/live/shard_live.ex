@@ -144,8 +144,7 @@ defmodule VikWeb.ShardLive do
       <.input
         type="textarea"
         field={f[:source_code]}
-        class="font-mono !text-lg !m-0"
-        rows="20"
+        class="font-mono !text-lg !m-0 h-full"
       />
       
       <div id="sidebar" class="flex flex-col gap-4">
