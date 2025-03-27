@@ -6,32 +6,39 @@ defmodule VikWeb.ShardController do
   alias Vik.Store
   alias Vik.Shard
   alias Vik.Compiled
+  alias Vik.PubSub
 
   import Structo
 
-  def execute(conn, ~m{slug}s = data) do
+  def execute(conn, ~m{slug}s = params) do
     case Repo.get_by(Shard, slug: slug) do
-      %Shard{} = shard -> try_execute(conn, shard, data)
+      %Shard{} = shard -> try_execute(conn, params, shard)
       nil -> raise Vik.ShardNotFound, slug
     end
   end
 
-  defp try_execute(conn, shard, data) do
-    if module = find_callable(shard) do
-      module.call(conn, params: data)
-    else
-      raise Vik.ShardNotExposed, shard
+  defp try_execute(conn, params, shard) do
+    case find_callable(shard) do
+      {mod, [{f, 2}]} -> apply(mod, f, [conn, []])
+      {mod, [{f, 3}]} -> apply(mod, f, [conn, params, []])
+      nil -> raise Vik.ShardNotExposed, shard
     end
+  rescue
+    e -> 
+      PubSub.broadcast(shard.slug, {:exception, e})
+      reraise e, __STACKTRACE__
   end
 
   defp find_callable(~m{:Shard, slug}) do
     case Store.fetch(slug) do
-      {:ok, data} -> check_callable(data)
+      {:ok, data} -> extract_spec(data)
       :error -> raise Vik.ShardNotAlive, slug
     end
   end
 
-  defp check_callable(~m{:Compiled, module}) do
-    if function_exported?(module, :call, 2), do: module
+  defp extract_spec(~m{:Compiled, module}) do
+    if function_exported?(module, :__call__, 0) do
+      {module, module.__call__()}
+    end
   end
 end

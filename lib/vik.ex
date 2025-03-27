@@ -6,6 +6,34 @@ defmodule Vik do
 
   @type slug :: String.t()
 
+  @doc ~S"""
+  Exposes the given function or module as a publicly
+  accessible API endpoint.
+
+  ## Examples
+
+      def call(conn, []) do
+        send_resp(conn, 200, "hewwo world :3")
+      end
+
+      expose call: 2
+
+
+      def call(conn, ~m{name}s, []) do
+        send_resp(conn, 200, "hewwo, #{name}!)
+      end
+
+      expose call: 3
+
+  """
+  defmacro expose(spec) do
+    quote do
+      def __call__ do
+        unquote(spec)
+      end
+    end
+  end
+
   @doc """
   Can be used to make modules available to other shards
   using `include/1`.
