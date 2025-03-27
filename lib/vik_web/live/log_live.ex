@@ -9,11 +9,18 @@ defmodule VikWeb.LogLive do
   @initial_lines 50
 
   @impl true
-  def mount(_params, _session, socket) do
-    Logger.subscribe()
+  def mount(%{"n" => n}, _session, socket) do
+    {:ok, mount_logs(socket, n)}
+  end
 
-    lines = Logger.tail(@initial_lines)
-    {:ok, stream_lines(socket, :logs, lines)}
+  @impl true
+  def mount(_params, _session, socket) do
+    {:ok, mount_logs(socket, @initial_lines)}
+  end
+
+  defp mount_logs(socket, n) do
+    Logger.subscribe()
+    stream_lines(socket, :logs, Logger.tail(n))
   end
 
   @impl true
