@@ -24,8 +24,10 @@ defmodule VikWeb.ShardController do
       nil -> raise Vik.ShardNotExposed, shard
     end
   rescue
-    e -> 
+    e ->
+      Vik.Logger.exception(e, __STACKTRACE__)
       PubSub.broadcast(shard.slug, {:exception, e})
+
       reraise e, __STACKTRACE__
   end
 

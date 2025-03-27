@@ -1,0 +1,104 @@
+defmodule Vik.Logger do
+  @moduledoc """
+  Simple logging server.
+
+  The server holds a list of all log entries in memory;
+  this comprises all exceptions and related messages
+  emitted since application boot.
+
+  This server also supports webhooks to push notifications
+  to other platforms (eg. Discord).
+
+  To utilize this functionality, export the `WEBHOOK_URL`
+  variable in your system's environment:
+
+      export WEBHOOK_URL="https://discord.com/api/webhooks/..."
+
+  The webhook will receive messages in the following JSON
+  structured format:
+
+      {"content": "** (RuntimeError) hewwo world :3"}
+    
+  """
+  use GenServer
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  @impl true
+  def init(_opts) do
+    {:ok, []}
+  end
+
+  @doc """
+  Logs a simple message.
+  """
+  @spec info(String.t()) :: :ok
+  def info(message) do
+    GenServer.cast(__MODULE__, {:append, message})
+  end
+
+  @doc """
+  Logs an exception.
+
+  Excludes all stacktraces unrelated to user code.
+  (Everything outside the `Vik.UserShard` namespace.)
+  """
+  @spec exception(Exception.t(), Exception.stacktrace()) :: :ok
+  def exception(e, stacktrace \\ []) do
+    message = format_exception(e, stacktrace)
+    GenServer.cast(__MODULE__, {:append, message})
+  end
+
+  defp format_exception(e, stacktrace) do
+    Exception.format(:error, e, clean_trace(stacktrace))
+  end
+
+  @doc """
+  Returns `n` latest log entries.
+  """
+  @spec tail(pos_integer()) :: [String.t()]
+  def tail(n) when n > 0 do
+    GenServer.call(__MODULE__, {:tail, n})
+  end
+
+  @impl true
+  def handle_call({:tail, n}, state) do
+    {:reply, Enum.take(state, n), state}
+  end
+
+  @impl true
+  def handle_cast({:append, message}, state) do
+    message
+    |> decorate_message()
+    |> push_notification()
+
+    {:noreply, [message | state]}
+  end
+
+  def push_notification(message) do
+    if url = System.get_env("WEBHOOK_URL") do
+      Req.post!(url, json: %{content: message})
+    end
+  end
+
+  defp decorate_message(message) do
+    "```\n#{message}\n```"
+  end
+
+  # This is ugly. It works tho :)
+
+  @user_mod "Elixir.Vik.UserShard"
+
+  defp clean_trace(stacktrace) do
+    Enum.flat_map(stacktrace, fn {m, f, a, info} ->
+      if m |> Atom.to_string() |> String.starts_with?(@user_mod) do
+        ["Vik", "UserShard" | m] = Module.split(m)
+        [{Module.concat(m), f, a, info}]
+      else
+        []
+      end
+    end)
+  end
+end
