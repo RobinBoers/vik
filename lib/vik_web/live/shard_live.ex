@@ -89,24 +89,23 @@ defmodule VikWeb.ShardLive do
   end
 
   @impl true
-  def handle_info({:lines, lines}, socket) do
-    {:noreply, stream(socket, :logs, List.wrap(lines))}
-  end
-
-  @impl true
   def handle_info({:exception, e}, socket) do
     message = Exception.format(:error, e)
     {:noreply, stream(socket, :logs, [message])}
   end
+
+  @ansi_escape ~r/\e\[[0-9;]*m/
   
   @impl true
-  def handle_info({:stdout, lines}, socket) do
-    {:noreply, stream(socket, :logs, [lines])}
+  def handle_info({:stdout, output}, socket) do
+    output = Regex.replace(@ansi_escape, output, "")
+    {:noreply, stream(socket, :logs, [output])}
   end
   
   @impl true
-  def handle_info({:stderr, lines}, socket) do
-    {:noreply, stream(socket, :logs, [lines])}
+  def handle_info({:stderr, output}, socket) do
+    output = Regex.replace(@ansi_escape, output, "")
+    {:noreply, stream(socket, :logs, [output])}
   end
 
   @impl true

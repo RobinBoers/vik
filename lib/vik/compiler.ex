@@ -39,6 +39,8 @@ defmodule Vik.Compiler do
     includes = extract_includes(source)
     quoted = build_quoted!(slug, source, includes)
 
+    Code.put_compiler_option(:ignore_module_conflict, true)
+
     {result, _binding} = Code.eval_quoted(quoted)
     {result, exports, includes}
   end
