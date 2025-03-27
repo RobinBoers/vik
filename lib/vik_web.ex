@@ -57,6 +57,11 @@ defmodule VikWeb do
 
       alias Phoenix.LiveView.Socket
 
+      import VikWeb, only: [
+        stream_lines: 2,
+        stream_lines: 3
+      ]
+
       unquote(html_helpers())
     end
   end
@@ -127,7 +132,13 @@ defmodule VikWeb do
     apply(__MODULE__, which, [])
   end
 
-  def dot_color(:stale), do: "bg-amber-400/10 text-amber-400"
-  def dot_color(:up), do: "bg-green-400/10 text-green-400"
-  def dot_color(:down), do: "bg-red-400/10 text-red-400"
+  def stream_lines(socket, assign, initial_lines \\ []) do
+    socket
+    |> Phoenix.LiveView.stream_configure(assign, dom_id: &dom_id/1)
+    |> Phoenix.LiveView.stream(assign, initial_lines)
+  end
+
+  defp dom_id(_) do
+    :crypto.strong_rand_bytes(8) |> Base.encode16()
+  end
 end

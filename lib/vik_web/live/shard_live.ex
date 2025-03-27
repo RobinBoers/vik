@@ -10,7 +10,6 @@ defmodule VikWeb.ShardLive do
   alias Vik.Thread
 
   import Ecto.Query
-  import VikWeb, only: [dot_color: 1]
 
   require Logger
 
@@ -32,13 +31,10 @@ defmodule VikWeb.ShardLive do
     socket
     |> assign(:task, nil)
     |> assign(:status, Store.status(shard))
-    |> stream_configure(:logs, dom_id: &dom_id/1)
-    |> stream(:logs, [])
+    |> stream_lines(:logs)
     |> assign_compiled(shard)
     |> assign_changeset(shard)
   end
-
-  defp dom_id(_), do: :crypto.strong_rand_bytes(8) |> Base.encode16()
 
   defp assign_compiled(socket, shard) do
     if compiled = Store.get(shard) do
@@ -196,4 +192,8 @@ defmodule VikWeb.ShardLive do
     </.form>
     """
   end
+
+  def dot_color(:stale), do: "bg-amber-400/10 text-amber-400"
+  def dot_color(:up), do: "bg-green-400/10 text-green-400"
+  def dot_color(:down), do: "bg-red-400/10 text-red-400"
 end

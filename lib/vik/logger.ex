@@ -22,13 +22,36 @@ defmodule Vik.Logger do
   """
   use GenServer
 
+  alias Vik.PubSub
+
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  @impl true
-  def init(_opts) do
-    {:ok, []}
+  @topic "vik_logger"
+
+  @doc """
+  Subscribes to log entries via PubSub.
+
+  ## Examples
+
+      @initial_lines 50
+  
+      def mount(_, _, socket) do
+        Vik.Logger.subscribe()
+
+        lines = Vik.Logger.tail(@initial_lines)
+        {:ok, stream(socket, :logs, lines)}
+      end
+
+      def handle_info({:lines, lines}, socket) do
+        {:noreply, stream(socket, :logs, lines, at: 0)}
+      end
+
+  """
+  @spec subscribe() :: :ok
+  def subscribe do
+    PubSub.subscribe(@topic)
   end
 
   @doc """
@@ -64,12 +87,19 @@ defmodule Vik.Logger do
   end
 
   @impl true
-  def handle_call({:tail, n}, state) do
+  def init(_opts) do
+    {:ok, []}
+  end
+
+  @impl true
+  def handle_call({:tail, n}, _from, state) do
     {:reply, Enum.take(state, n), state}
   end
 
   @impl true
   def handle_cast({:append, message}, state) do
+    PubSub.broadcast(@topic, {:lines, [message]})
+  
     message
     |> decorate_message()
     |> push_notification()

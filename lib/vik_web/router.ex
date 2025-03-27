@@ -19,7 +19,8 @@ defmodule VikWeb.Router do
     pipe_through :browser
 
     live "/", DashboardLive, :list
-    live "/new", NewLive, :live
+    live "/log", LogLive, :log
+    live "/new", NewLive, :new
     live "/:slug", ShardLive, :edit
   end
 

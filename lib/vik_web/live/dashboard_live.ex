@@ -16,7 +16,6 @@ defmodule VikWeb.DashboardLive do
     {:other, "Other", "bg-gray-700/85"}
   ]
 
-  import VikWeb, only: [dot_color: 1]
   import Ecto.Query
 
   on_mount {VikWeb.SystemHandler, :realtime}
@@ -263,4 +262,8 @@ defmodule VikWeb.DashboardLive do
   defp memory_unit(:GB), do: 1024 * 1024 * 1024
   defp memory_unit(:MB), do: 1024 * 1024
   defp memory_unit(:KB), do: 1024
+
+  def dot_color(:stale), do: "bg-amber-400/10 text-amber-400"
+  def dot_color(:up), do: "bg-green-400/10 text-green-400"
+  def dot_color(:down), do: "bg-red-400/10 text-red-400"
 end
