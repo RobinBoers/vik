@@ -42,6 +42,10 @@ defmodule Vik.Thread do
         Store.put(shard, compiled)
         PubSub.broadcast(shard.slug, {:status, :up})
 
+        PubSub.broadcast(shard.slug, {:stdout, """
+        Generated #{shard.slug} shard
+        """})
+
         {:ok, compiled}
 
       {:error, exception} ->
@@ -82,15 +86,12 @@ defmodule Vik.Thread do
     PubSub.broadcast(shard.slug, {:stdout, """
     => Compiling #{shard.slug}
     """})
-  
+
     {result, stdout, stderr} = 
       IO.capture(fn -> Compiler.eval(shard) end)
 
     PubSub.broadcast(shard.slug, {:stdout, stdout})
     PubSub.broadcast(shard.slug, {:stderr, stderr})
-    PubSub.broadcast(shard.slug, {:stdout, """
-    Generated #{shard.slug} shard
-    """})
       
     result
   end
