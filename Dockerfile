@@ -13,10 +13,10 @@
 #
 ARG ELIXIR_VERSION=1.18.3
 ARG OTP_VERSION=26.0.2
-ARG DEBIAN_VERSION=bullseye-20250317-slim
+ARG UBUNTU_VERSION=jammy-20250126
 
-ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
-ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
+ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-ubuntu-${UBUNTU_VERSION}"
+ARG RUNNER_IMAGE="ubuntu:${UBUNTU_VERSION}"
 
 FROM ${BUILDER_IMAGE} AS builder
 
@@ -68,8 +68,19 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates chromium-driver \
+  apt-get install -y libstdc++6 openssl libncurses6 locales ca-certificates tzdata wget curl gnupg \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
+
+# install google chrome
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+RUN apt-get -y update
+RUN apt-get install -y google-chrome-stable
+
+# install chromedriver
+RUN apt-get install -yqq unzip
+RUN wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`/chromedriver_linux64.zip
+RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
