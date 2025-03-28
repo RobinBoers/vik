@@ -10,6 +10,8 @@ defmodule VikWeb.ShardController do
 
   import Structo
 
+  plug :put_content_type
+
   def execute(conn, ~m{slug}s = params) do
     case Repo.get_by(Shard, slug: slug) do
       %Shard{} = shard -> try_execute(conn, params, shard)
@@ -42,5 +44,14 @@ defmodule VikWeb.ShardController do
     if function_exported?(module, :__call__, 0) do
       {module, module.__call__()}
     end
+  end
+
+  # The shard can of course override this, but we need
+  # to make sure we at least set the header. Otherwise,
+  # the browser will assume application/ocet-stream, which
+  # is almost never desired behaviour. JSON is a sane default.
+
+  defp put_content_type(conn, _opts) do
+    put_resp_content_type(conn, "application/json")
   end
 end
