@@ -4,8 +4,11 @@ serve() {
 	mix phx.server
 }
 
-deploy() {
+build() {
 	docker build -t vik .
+}
+
+deploy() {
 	docker tag vik:latest ghcr.io/robinboers/vik:latest
 	docker push ghcr.io/robinboers/vik:latest
 }
