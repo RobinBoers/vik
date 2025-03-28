@@ -1,8 +1,6 @@
 defmodule Vik.IO do
   @moduledoc false
 
-  alias Vik.PubSub
-
   @default_opts [
     capture_prompt: true,
     encoding: :unicode,

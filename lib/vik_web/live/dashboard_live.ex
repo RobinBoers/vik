@@ -36,6 +36,11 @@ defmodule VikWeb.DashboardLive do
     {:noreply, assign(socket, :shards, load_shards())}
   end
 
+  @impl true
+  def handle_info(_, socket) do
+    {:noreply, socket}
+  end
+
   defp load_shards do
     query = from s in Shard, order_by: [desc: s.updated_at], limit: 7
 
