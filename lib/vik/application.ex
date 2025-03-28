@@ -12,6 +12,7 @@ defmodule Vik.Application do
       Vik.Store,
       Vik.PubSub,
       Vik.Logger,
+      Vik.Thread,
       VikWeb.Endpoint
     ]
 

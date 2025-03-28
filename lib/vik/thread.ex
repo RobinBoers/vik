@@ -95,4 +95,20 @@ defmodule Vik.Thread do
       
     result
   end
+
+  @spec provision() :: :ok
+  def provision do
+    for %Shard{} = shard <- Repo.all(Shard) do
+      eval(shard)
+    end
+  end
+
+  @doc false
+  def child_spec(_) do
+    %{
+      id: Task,
+      restart: :temporary,
+      start: {Task, :start_link, [&provision/0]}
+    }
+  end
 end
