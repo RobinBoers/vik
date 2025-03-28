@@ -31,11 +31,25 @@ defmodule VikWeb.LogLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="grid grid-rows-[40px_1fr] max-h-[calc(100vh-100px)]">
+    <div class="grid grid-rows-[40px_1fr] max-h-[calc(100vh-100px)] px-4 py-8">
       <h1 class="font-bold text-2xl mb-1">Logs</h1>
-      <div id="logs" class="font-mono overflow-auto" phx-update="stream">
-        <pre class="whitespace-pre-wrap" :for={{dom_id, line} <- @streams.logs} id={dom_id}>{line}</pre>
-      </div>
+      <.terminal id="logs" lines={@streams.logs} />
+    </div>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :lines, :list, required: true
+  attr :scroll, :boolean, default: false
+
+  def terminal(assigns) do
+    ~H"""
+    <div id={@id} phx-update="stream" phx-hook={@scroll && "Scroll"} class="font-mono overflow-auto bg-zinc-100">
+      <pre
+        :for={{dom_id, line} <- @lines}
+        id={dom_id}
+        class="whitespace-pre-wrap p-2 empty:hidden hover:bg-zinc-50"
+      >{line}</pre>
     </div>
     """
   end

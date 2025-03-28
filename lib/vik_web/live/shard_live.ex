@@ -10,6 +10,7 @@ defmodule VikWeb.ShardLive do
   alias Vik.Thread
 
   import Ecto.Query
+  import VikWeb.LogLive, only: [terminal: 1]
 
   require Logger
 
@@ -185,10 +186,8 @@ defmodule VikWeb.ShardLive do
           </ul>
         </div>
       </div>
-
-      <div id="logs" class="font-mono overflow-auto" phx-update="stream" phx-hook="Scroll">
-        <pre class="line" :for={{dom_id, line} <- @streams.logs} id={dom_id}>{line}</pre>
-      </div>
+     
+      <.terminal id="logs" lines={@streams.logs} scroll />
     </.form>
     """
   end
