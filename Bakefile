@@ -1,0 +1,11 @@
+#!/bin/sh
+
+serve() {
+	mix phx.server
+}
+
+deploy() {
+	docker build -t vik .
+	docker tag vik:latest ghcr.io/robinboers/vik:latest
+	docker push ghcr.io/robinboers/vik:latest
+}
