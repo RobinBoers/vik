@@ -23,6 +23,12 @@
   }
 }
 
+/* Hacks to make my JS hacks work :) */
+[data-submit-loading] [data-disable-with],
+[data-submit-loading] button:has([data-disable-with]) {
+  pointer-events: none;
+}
+
 /* Hacks to ensure my layout doesn't fuck itself up
    due to elements inserted by Phoenix LiveView. */
 html, body {

@@ -25,13 +25,6 @@ Hooks.SlowSubmit = {
     // That's the key element that my previous implementation was missing!
     // Since the element is re-rendered, I need to set the class again if
     // we're still submitting.
-    const resetSubmitLoading = () => {
-      if (this.submitting) this.el.classList.add("phx-submit-loading");
-    };
-
-    window.addEventListener("phx:page-loading-stop", resetSubmitLoading, {
-      once: true,
-    });
 
     this.setSubmitting(event);
 
@@ -50,7 +43,7 @@ Hooks.SlowSubmit = {
 
   setSubmitting(event) {
     this.submitting = true;
-    this.el.classList.add("phx-submit-loading");
+    this.el.setAttribute("data-submit-loading", true);
 
     event.submitter.querySelectorAll("[data-disable-with]").forEach((el) => {
       const html = el.innerHTML;
@@ -61,7 +54,7 @@ Hooks.SlowSubmit = {
 
   stopSubmitting(event) {
     this.submitting = false;
-    this.el.classList.remove("phx-submit-loading");
+    this.el.removeAttribute("data-submit-loading");
 
     event.submitter.querySelectorAll("[data-disable-with]").forEach((el) => {
       const html = el.getAttribute("data-disable-with");
@@ -79,20 +72,24 @@ let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
   hooks: Hooks,
+  dom: {
+    onBeforeElUpdated(from, to) {
+      const prop = "data-update-ignore";
+      const ignored = from.hasAttribute(prop) ? 
+        from.getAttribute(prop).split(" ") : [];
+    
+      const defaults = ["data-submit-loading"];
+      ignored.concat(defaults).forEach(attr => {
+        if(from.hasAttribute(attr))
+          to.setAttribute(attr, from.getAttribute(attr));
+      });
+    }
+  }
 });
 
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
 window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
-
-document.addEventListener("phx:submit-loading", (event) => {
-  console.log(event);
-  setTimeout(() => {
-    event.target.querySelectorAll("button").forEach((b) => {
-      b.classList.add("phx-submit-loading:opacity-75");
-    });
-  }, 300);
-});
 
 liveSocket.connect();
 
