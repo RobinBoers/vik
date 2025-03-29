@@ -21,7 +21,7 @@ ARG RUNNER_IMAGE="ubuntu:${UBUNTU_VERSION}"
 FROM ${BUILDER_IMAGE} AS builder
 
 # install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git \
+RUN apt-get update -y && apt-get install -y build-essential git npm \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # prepare build dir
@@ -52,6 +52,7 @@ COPY lib lib
 COPY assets assets
 
 # compile assets
+RUN npm i --prefix assets
 RUN mix assets.deploy
 
 # Compile the release
