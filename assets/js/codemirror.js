@@ -1,0 +1,107 @@
+import { EditorView } from "codemirror";
+import { EditorState } from "@codemirror/state";
+
+import {
+  keymap,
+  highlightSpecialChars,
+  drawSelection,
+  dropCursor,
+  rectangularSelection,
+  crosshairCursor,
+} from "@codemirror/view";
+
+import {
+  defaultHighlightStyle,
+  syntaxHighlighting,
+  indentOnInput,
+  bracketMatching,
+} from "@codemirror/language";
+
+import {
+  autocompletion,
+  startCompletion,
+  completionKeymap,
+  closeBrackets,
+  closeBracketsKeymap,
+  acceptCompletion,
+} from "@codemirror/autocomplete";
+
+import {
+  defaultKeymap,
+  history,
+  historyKeymap,
+  indentWithTab,
+} from "@codemirror/commands";
+
+import { lintKeymap } from "@codemirror/lint";
+import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
+
+import { elixir } from "codemirror-lang-elixir";
+import { espresso } from "thememirror";
+
+export const Hook = {
+  mounted() {
+    const textarea = this.el.querySelector("textarea");
+    const target = this.el.querySelector(".target");
+
+    textarea.setAttribute("hidden", true);
+
+    const submitFormWith = (action) => {
+      textarea.form.querySelector(`[value=${action}]`).click();
+      return true;
+    }
+
+    const saveShard = () => submitFormWith("save");
+    const deployShard = () => submitFormWith("deploy");
+
+    const keymapping = [
+      { key: "Mod-Enter", run: deployShard },
+      { key: "Mod-s", run: saveShard, preventDefault: true },
+      { key: "Shift-Enter", run: deployShard },
+      ...closeBracketsKeymap,
+      ...defaultKeymap,
+      ...searchKeymap,
+      ...historyKeymap,
+      ...completionKeymap,
+      ...lintKeymap,
+      indentWithTab
+    ];
+
+    const editor = new EditorView({
+      parent: target,
+      doc: textarea.value,
+      extensions: [
+        highlightSpecialChars(),
+        history(),
+        drawSelection(),
+        syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+        EditorState.allowMultipleSelections.of(true),
+        dropCursor(),
+        indentOnInput(),
+        bracketMatching(),
+        closeBrackets(),
+        autocompletion(),
+        rectangularSelection(),
+        crosshairCursor(),
+        highlightSelectionMatches(),
+        keymap.of(keymapping),
+        elixir(),
+        espresso,
+      ],
+    });
+
+    textarea.form.onsubmit = () => {
+      textarea.value = editor.state.doc.toString();
+    };
+
+    textarea.onchange = (e) => {
+      editor.dispatch({
+        changes: {
+          from: 0,
+          to: editor.state.doc.length,
+          insert: e.target.value,
+        },
+      });
+    };
+  },
+};

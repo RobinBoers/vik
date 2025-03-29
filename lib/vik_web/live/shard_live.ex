@@ -138,12 +138,8 @@ defmodule VikWeb.ShardLive do
       phx-submit={JS.push("submit", page_loading: true)}
       phx-hook="SlowSubmit"
     >
-      <.input
-        type="textarea"
-        field={f[:source_code]}
-        class="font-mono !text-lg !m-0 h-full"
-      />
-      
+      <.codemirror id="source-code" field={f[:source_code]} />
+
       <div id="sidebar" class="flex flex-col gap-4">
         <div class="flex items-center gap-2">
           <h2 class="font-bold text-2xl ml-2">{@shard.title}</h2>
@@ -195,4 +191,41 @@ defmodule VikWeb.ShardLive do
   def dot_color(:stale), do: "bg-amber-400/10 text-amber-400"
   def dot_color(:up), do: "bg-green-400/10 text-green-400"
   def dot_color(:down), do: "bg-red-400/10 text-red-400"
+
+  attr :id, :string
+  attr :name, :string
+  attr :value, :string
+  attr :field, Phoenix.FormField
+
+  attr :rest, :global
+
+  def codemirror(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
+    assigns
+    |> assign(field: nil, id: assigns.id || field.id)
+    |> assign_new(:name, fn -> field.name end)
+    |> assign_new(:value, fn -> field.value end)
+    |> codemirror()
+  end
+  
+  def codemirror(assigns) do
+    ~H"""
+    <div
+      id={"#{@id}-wrapper"}
+      phx-hook="CodeMirror"
+      class="codemirror"
+    >
+      <div
+        id={"#{@id}-target"}
+        class="target"
+        phx-update="ignore"
+      ></div>
+      <textarea
+        id={@id}
+        name={@name}
+        data-update-ignore="hidden"
+        {@rest}
+      >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
+    </div>
+    """
+  end  
 end

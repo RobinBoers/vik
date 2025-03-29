@@ -21,6 +21,58 @@
   #shard #logs {
     grid-area: logs;
   }
+
+  .codemirror textarea,
+  .codemirror .target:not(:empty),
+  .codemirror .cm-editor {
+    height: 100%;
+    font-size: 1.6rem;
+  }
+
+  .codemirror textarea {
+    font-family: monospace;
+    line-height: 1.4;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    resize: none;
+    border: 2px solid #e5e7eb;
+    border-radius: 7px;
+  }
+
+  .codemirror textarea:focus {
+    outline: none;
+    box-shadow: none;
+    border: 1px dotted #212121;
+  }
+  
+  .codemirror .cm-editor {
+    padding: 0;
+    border-radius: 7px;
+    border-width: 1px;
+    overflow: hidden;
+  }
+
+  .codemirror .cm-line {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .codemirror .cm-content {
+    padding-top: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .codemirror .cm-focused {
+    outline: none !important;
+    border: 1px dotted #212121;
+  }
+
+  .codemirror .cm-content,
+  .codemirror .cm-gutter {
+    height: 100%;
+    min-height: 200px !important;
+  }
 }
 
 /* Hacks to make my JS hacks work :) */
