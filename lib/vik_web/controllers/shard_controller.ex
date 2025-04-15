@@ -12,10 +12,24 @@ defmodule VikWeb.ShardController do
 
   plug :put_content_type
 
-  def execute(conn, ~m{slug}s = params) do
+  def execute(conn, params) do
+    {slug, params} = extract_slug(params)
+
     case Repo.get_by(Shard, slug: slug) do
       %Shard{} = shard -> try_execute(conn, params, shard)
       nil -> raise Vik.ShardNotFound, slug
+    end
+  end
+
+  defp extract_slug(%{"path" => path} = params) do
+    {slug, path} = extract_slug(path)
+    {slug, %{params | "path" => path}}
+  end
+
+  defp extract_slug(path) when is_binary(path) do
+    case String.split(path, "/", parts: 2) do
+      [slug] -> {slug, "/"}
+      [slug, path] -> {slug, path}
     end
   end
 
