@@ -5,6 +5,7 @@ defmodule Vik do
   """
 
   @type slug :: String.t()
+  @type export :: module() | {module(), atom(), arity()}
 
   @doc ~S"""
   Exposes the given function or module as a publicly

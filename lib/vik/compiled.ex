@@ -9,7 +9,7 @@ defmodule Vik.Compiled do
   typedstruct do
     field :module, module()
     field :result, term()
-    field :exports, [module()]
+    field :exports, [Vik.export()]
     field :includes, [Vik.slug()]
 
     # If a newer version of the module is

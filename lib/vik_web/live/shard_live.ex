@@ -163,7 +163,7 @@ defmodule VikWeb.ShardLive do
           <ul>
             <li :for={export <- @compiled.exports}>
               <code>
-                {String.replace_prefix(to_string(export), to_string(@compiled.module) <> ".", "")}
+                {String.replace_prefix(format_export(export), to_string(@compiled.module) <> ".", "")}
               </code>
             </li>
           </ul>
@@ -227,5 +227,13 @@ defmodule VikWeb.ShardLive do
       >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
     </div>
     """
-  end  
+  end
+
+  defp format_export(export) when is_atom(export) do
+    to_string(export)
+  end
+
+  defp format_export({_mod, fun, arity}) do
+    inspect({fun, arity})
+  end
 end

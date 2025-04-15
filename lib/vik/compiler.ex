@@ -17,7 +17,7 @@ defmodule Vik.Compiler do
 
   Returns the resulting module and any exports. 
   """
-  @spec eval(Shard.t()) :: {:ok, term(), [module()], [slug()]} | {:error, term()}
+  @spec eval(Shard.t()) :: {:ok, term(), [Vik.export()], [slug()]} | {:error, term()}
   def eval(%Shard{} = shard) do
     {result, exports, includes} = eval!(shard)
     {:ok, result, exports, includes}
@@ -60,12 +60,25 @@ defmodule Vik.Compiler do
         @includes []
 
         unquote_splicing(
-          for exports <- dependencies,
-              module <- exports do
-            quote do
-              alias unquote(module)
+          dependencies
+          |> List.flatten()
+          |> Enum.group_by(
+            fn
+              {mod, _fun, _arity} -> mod
+              mod when is_atom(mod) -> {:alias, mod}
+            end,
+            fn
+              {_, fun, arity} -> {fun, arity}
+              mod when is_atom(mod) -> mod
             end
-          end
+          )
+          |> Enum.flat_map(fn
+            {{:alias, mod}, _} ->
+              [quote(do: alias unquote(mod))]
+
+            {mod, funs} ->
+              [quote(do: import(unquote(Module.concat(mod)), only: unquote(funs)))]
+          end)
         )
 
         unquote(quoted)
@@ -82,11 +95,16 @@ defmodule Vik.Compiler do
     extract_exports(shard.slug, shard.source_code)
   end
 
-  @spec extract_exports(slug(), source()) :: [module()]
+  @regex ~r/export\s+([A-Za-z0-9_.]+)(?::\s*(\d+))?/
+
+  @spec extract_exports(slug(), source()) :: [Vik.export()]
   defp extract_exports(slug, source) when is_binary(slug) and is_binary(source) do
-    regex = ~r/export\s+([A-Za-z0-9_.]+)/
-    for [_, mod] <- Regex.scan(regex, source) do
-      Module.concat(module_name(slug) ++ [mod])
+    for [_, name, arity] <- Regex.scan(@regex, source) do
+      if arity do
+        {module_name(slug), String.to_atom(name), String.to_integer(arity)}
+      else
+        Module.concat(module_name(slug) ++ [name])
+      end
     end
   end
   
