@@ -99,13 +99,14 @@ defmodule Vik.Compiler do
 
   @spec extract_exports(slug(), source()) :: [Vik.export()]
   defp extract_exports(slug, source) when is_binary(slug) and is_binary(source) do
-    for [_, name, arity] <- Regex.scan(@regex, source) do
-      if arity do
-        {module_name(slug), String.to_atom(name), String.to_integer(arity)}
-      else
-        Module.concat(module_name(slug) ++ [name])
-      end
-    end
+    mod = module_name(slug)
+    
+    @regex
+    |> Regex.scan(source)
+    |> Enum.map(fn
+      [_, name] -> Module.concat(mod ++ [name])
+      [_, name, arity] -> {mod, String.to_atom(name), String.to_integer(arity)}
+    end)
   end
   
   @spec resolve_includes!(source()) :: [[module()]]
