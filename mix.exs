@@ -3,6 +3,9 @@ defmodule Vik.MixProject do
 
   def project do
     [
+      name: "Vik",
+      source_url: "https://github.com/RobinBoers/vik",
+      homepage_url: "https://dupunkto.org/vik",
       app: :vik,
       version: "0.1.0",
       elixir: "~> 1.14",
@@ -51,6 +54,9 @@ defmodule Vik.MixProject do
       {:bandit, "~> 1.5"},
       {:typedstruct, "~> 0.5.3"},
       {:structo, "~> 0.1.2"},
+
+      # For documentation :)
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
 
       # Useful in Shards
       {:wallaby, "~> 0.30.0"},
