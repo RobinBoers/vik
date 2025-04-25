@@ -7,6 +7,7 @@ defmodule Vik.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      {KV, kv_opts()},
       VikWeb.Telemetry,
       Vik.Repo,
       Vik.Store,
@@ -18,6 +19,10 @@ defmodule Vik.Application do
 
     opts = [strategy: :one_for_one, name: Vik.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp kv_opts do
+    [root: System.get_env("KV_ROOT")]
   end
 
   @impl true
