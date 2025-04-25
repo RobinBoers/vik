@@ -141,11 +141,20 @@ defmodule VikWeb.ShardLive do
       <.codemirror id="source-code" field={f[:source_code]} />
 
       <div id="sidebar" class="flex flex-col gap-4">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 -mb-1.5">
           <h2 class="font-bold text-2xl ml-2">{@shard.title}</h2>
           <div class={"flex-none rounded-full p-1 #{dot_color(@status)}"}>
             <div class="size-1.5 rounded-full bg-current"></div>
           </div>
+          <div class="flex-grow"></div>
+          <a
+            href={~p"/api/#{@shard.slug}"}
+            target="_blank"
+            title="Open in new tab"
+            class="rounded-full bg-gray-100 hover:bg-gray-200 p-2 flex items-center justify-center"
+          >
+            <.icon name="hero-globe-alt" />
+          </a>
         </div>
         <div class="flex gap-1">
           <.button id="save" class="flex-1 flex justify-center items-center gap-2" name="action" value="save">
