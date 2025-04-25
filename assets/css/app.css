@@ -80,17 +80,6 @@
   }
 }
 
-/* Hacks to prevent grid layouts overflowing */
-main {   
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-main > * {
-  width: 100%;
-}
-
 /* Hacks to make my JS hacks work :) */
 [data-submit-loading] [data-disable-with],
 [data-submit-loading] button:has([data-disable-with]) {

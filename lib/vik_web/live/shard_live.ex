@@ -138,6 +138,18 @@ defmodule VikWeb.ShardLive do
       phx-submit={JS.push("submit", page_loading: true)}
       phx-hook="SlowSubmit"
     >
+      <style>
+        /* Hacks to prevent grid layouts overflowing */
+        main {   
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+        main > * {
+          width: 100%;
+        }
+      </style>
+
       <.codemirror id="source-code" field={f[:source_code]} />
 
       <div id="sidebar" class="flex flex-col gap-4">
