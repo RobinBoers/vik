@@ -92,6 +92,14 @@ defmodule KV do
     end
   end
 
+  @doc """
+  Lists all values in the given `table`.
+  """
+  @spec list(table()) :: [value()]
+  def list(table) do
+    GenServer.call(__MODULE__, {:list, table})
+  end
+
   @doc false
   @impl true
   def init(state) do
@@ -117,6 +125,15 @@ defmodule KV do
       [] -> {:reply, :error, state}
       {:error, _} -> {:reply, :error, state}
     end
+  end
+
+  @doc false
+  @impl true
+  def handle_call({:list, table}, _from, state) do
+    state = ensure_table!(state, table)
+    records = :dets.foldl(fn {_, v}, acc -> [v | acc] end, [], table)
+
+    {:reply, records, state}
   end
 
   @doc false
