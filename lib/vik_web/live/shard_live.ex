@@ -22,7 +22,7 @@ defmodule VikWeb.ShardLive do
   def mount(%{"slug" => slug}, _session, socket) do
     case Repo.get_by(Shard, slug: slug) do
       %Shard{} = shard -> {:ok, mount_shard(socket, shard)}
-      nil -> raise Vik.ShardNotFound
+      nil -> raise Vik.ShardNotFound, slug
     end
   end
 
