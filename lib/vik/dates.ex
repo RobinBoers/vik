@@ -35,7 +35,7 @@ defmodule Vik.Dates do
       s <= 45 -> "a few seconds ago"
       s <= @minute -> "a minute ago"
       s <= 45 * @minute and div(s, @minute) == 1 -> "a minute ago"
-      s <= 45 * @minute -> "#{div(s, @minute)} minutes ago" 
+      s <= 45 * @minute -> "#{div(s, @minute)} minutes ago"
       s <= 1.5 * @hour -> "an hour ago"
       s <= 22 * @hour and div(s, @hour) == 1 -> "an hour ago"
       s <= 22 * @hour -> "#{div(s, @hour)} hours ago"

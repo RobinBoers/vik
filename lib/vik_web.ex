@@ -57,11 +57,12 @@ defmodule VikWeb do
 
       alias Phoenix.LiveView.Socket
 
-      import VikWeb, only: [
-        stream_color: 4,
-        stream_lines: 2,
-        stream_lines: 3
-      ]
+      import VikWeb,
+        only: [
+          stream_color: 4,
+          stream_lines: 2,
+          stream_lines: 3
+        ]
 
       unquote(html_helpers())
     end

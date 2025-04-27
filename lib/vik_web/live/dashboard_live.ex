@@ -57,37 +57,13 @@ defmodule VikWeb.DashboardLive do
       <section>
         <h2 class="sr-only">System information</h2>
         <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 mb-4">
-          <.card
-            title="Erlang"
-            value={@versions.erlang}
-            class="bg-red-600/5 text-red-600"
-          />
-          <.card
-            title="Elixir"
-            value={@versions.elixir}
-            class="bg-purple-600/5 text-purple-600"
-          />
-          <.card
-            title="Phoenix"
-            value={@versions.phoenix}
-            class="bg-brand/5 text-brand"
-          />
-          <.card
-            title="Uptime"
-            value={format_uptime(@usage.uptime)}
-          />
-          <.card
-            title="Network in"
-            value={@usage.io |> elem(0) |> format_bytes()}
-          />
-          <.card
-            title="Network out"
-            value={@usage.io |> elem(1) |> format_bytes()}
-          />
-          <.card
-            title="Memory"
-            value={format_bytes(@usage.memory.total)}
-          />
+          <.card title="Erlang" value={@versions.erlang} class="bg-red-600/5 text-red-600" />
+          <.card title="Elixir" value={@versions.elixir} class="bg-purple-600/5 text-purple-600" />
+          <.card title="Phoenix" value={@versions.phoenix} class="bg-brand/5 text-brand" />
+          <.card title="Uptime" value={format_uptime(@usage.uptime)} />
+          <.card title="Network in" value={@usage.io |> elem(0) |> format_bytes()} />
+          <.card title="Network out" value={@usage.io |> elem(1) |> format_bytes()} />
+          <.card title="Memory" value={format_bytes(@usage.memory.total)} />
         </div>
 
         <p :if={assigns[:debug]} class="flex justify-between">
@@ -102,15 +78,19 @@ defmodule VikWeb.DashboardLive do
           <div class="overflow-x-auto">
             <table class="-ml-4 w-full text-left whitespace-nowrap">
               <colgroup>
-                <col class="w-full lg:w-4/8">
-                <col class="lg:w-1/8">
-                <col class="lg:w-3/8">
+                <col class="w-full lg:w-4/8" />
+                <col class="lg:w-1/8" />
+                <col class="lg:w-3/8" />
               </colgroup>
               <thead class="border-b border-zinc-900/10 text-sm/6">
                 <tr>
                   <th scope="col" class="py-2 pr-8 font-semibold pl-4">Title</th>
-                  <th scope="col" class="py-2 pr-4 pl-0 text-right font-semibold sm:pr-8 lg:pr-20">Status</th>
-                  <th scope="col" class="hidden py-2 pl-0 text-right font-semibold sm:table-cell pr-4">Deployed at</th>
+                  <th scope="col" class="py-2 pr-4 pl-0 text-right font-semibold sm:pr-8 lg:pr-20">
+                    Status
+                  </th>
+                  <th scope="col" class="hidden py-2 pl-0 text-right font-semibold sm:table-cell pr-4">
+                    Deployed at
+                  </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-zinc-900/5">
@@ -232,7 +212,7 @@ defmodule VikWeb.DashboardLive do
   end
 
   def extract_flags(banner) do
-    ["Erlang/OTP", _version, flags] = 
+    ["Erlang/OTP", _version, flags] =
       banner |> to_string() |> String.split(" ", parts: 3)
 
     flags

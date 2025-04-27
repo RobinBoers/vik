@@ -50,4 +50,3 @@ defmodule VikWeb.NewLive do
     """
   end
 end
-

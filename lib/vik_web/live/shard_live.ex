@@ -57,8 +57,8 @@ defmodule VikWeb.ShardLive do
 
   @impl true
   def handle_event("submit", %{"action" => "save", "shard" => params}, socket) do
-     %Shard{} = shard = save_shard(socket.assigns.shard, params)
-     Thread.mark_stale(shard)
+    %Shard{} = shard = save_shard(socket.assigns.shard, params)
+    Thread.mark_stale(shard)
     {:noreply, assign_changeset(socket, shard)}
   end
 
@@ -91,13 +91,13 @@ defmodule VikWeb.ShardLive do
   end
 
   @ansi_escape ~r/\e\[[0-9;]*m/
-  
+
   @impl true
   def handle_info({:stdout, output}, socket) do
     output = Regex.replace(@ansi_escape, output, "")
     {:noreply, stream(socket, :logs, [output])}
   end
-  
+
   @impl true
   def handle_info({:stderr, output}, socket) do
     output = Regex.replace(@ansi_escape, output, "")
@@ -205,7 +205,7 @@ defmodule VikWeb.ShardLive do
           </ul>
         </div>
       </div>
-     
+
       <.terminal id="logs" lines={@streams.logs} scroll />
     </.form>
     """
@@ -229,7 +229,7 @@ defmodule VikWeb.ShardLive do
     |> assign_new(:value, fn -> field.value end)
     |> codemirror()
   end
-  
+
   def codemirror(assigns) do
     ~H"""
     <div

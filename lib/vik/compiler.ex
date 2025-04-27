@@ -50,7 +50,7 @@ defmodule Vik.Compiler do
     mod = slug |> module_name() |> Module.concat()
     dependencies = resolve_includes!(includes)
     quoted = Code.string_to_quoted!(source)
-    
+
     quote do
       defmodule unquote(mod) do
         import Vik
@@ -74,7 +74,7 @@ defmodule Vik.Compiler do
           )
           |> Enum.flat_map(fn
             {{:alias, mod}, _} ->
-              [quote(do: alias unquote(mod))]
+              [quote(do: alias(unquote(mod)))]
 
             {mod, funs} ->
               [quote(do: import(unquote(Module.concat(mod)), only: unquote(funs)))]
@@ -100,7 +100,7 @@ defmodule Vik.Compiler do
   @spec extract_exports(slug(), source()) :: [Vik.export()]
   defp extract_exports(slug, source) when is_binary(slug) and is_binary(source) do
     mod = module_name(slug)
-    
+
     @regex
     |> Regex.scan(source)
     |> Enum.map(fn
@@ -108,14 +108,14 @@ defmodule Vik.Compiler do
       [_, name, arity] -> {mod, String.to_atom(name), String.to_integer(arity)}
     end)
   end
-  
+
   @spec resolve_includes!(source()) :: [[module()]]
   defp resolve_includes!(source) when is_binary(source) do
     source |> extract_includes() |> resolve_includes!()
   end
 
   @spec resolve_includes!([slug()]) :: [[module()]]
-  defp resolve_includes!(includes) when is_list(includes) do    
+  defp resolve_includes!(includes) when is_list(includes) do
     for slug <- includes do
       %Compiled{} = compiled = Thread.ensure_compiled!(slug)
       compiled.exports

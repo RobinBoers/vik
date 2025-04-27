@@ -17,7 +17,6 @@ defmodule VikWeb.SystemHandler do
       end
     end
 
-
     {:cont, socket
      |> assign_node(session)
      |> assign_system_info()
@@ -28,7 +27,7 @@ defmodule VikWeb.SystemHandler do
     Process.send_after(self(), :refresh, @interval)
     {:halt, assign_system_info(socket)}
   end
-  
+
   def handle_info(_message, socket) do
     {:cont, socket}
   end
@@ -40,7 +39,7 @@ defmodule VikWeb.SystemHandler do
   end
 
   defp assign_system_info(socket) do
-    ~m{versions, system_info, system_usage, system_limits} = 
+    ~m{versions, system_info, system_usage, system_limits} =
       System.fetch_system_info(socket.assigns.node)
 
     socket

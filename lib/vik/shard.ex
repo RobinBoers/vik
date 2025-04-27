@@ -18,14 +18,14 @@ defmodule Vik.Shard do
   end
 
   @type t :: %__MODULE__{
-      slug: String.t(),
-      title: String.t(),
-      source_code: String.t()
-    }
+          slug: String.t(),
+          title: String.t(),
+          source_code: String.t()
+        }
 
   def new_changeset(attrs \\ %{}) do
     %__MODULE__{}
-    |> cast(attrs, [:slug, :title,])
+    |> cast(attrs, [:slug, :title])
     |> validate_required([:slug, :title])
     |> unique_constraint(:slug)
   end

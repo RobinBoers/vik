@@ -11,7 +11,8 @@ defmodule VikWeb.ShellLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket
+    {:ok,
+     socket
      |> assign(:binding, [])
      |> stream_lines(:logs, [])}
   end
@@ -26,7 +27,7 @@ defmodule VikWeb.ShellLive do
     message = Exception.format(:error, e)
     {:noreply, stream(socket, :logs, [message])}
   end
-  
+
   @ansi_escape ~r/\e\[[0-9;]*m/
 
   @impl true
@@ -34,7 +35,7 @@ defmodule VikWeb.ShellLive do
     output = Regex.replace(@ansi_escape, output, "")
     {:noreply, stream(socket, :logs, [output])}
   end
-  
+
   @impl true
   def handle_info({:stderr, output}, socket) do
     output = Regex.replace(@ansi_escape, output, "")
@@ -44,8 +45,9 @@ defmodule VikWeb.ShellLive do
   @impl true
   def handle_event("execute", %{"source" => source}, socket) do
     {_result, binding} = eval(source, socket.assigns.binding)
-  
-    {:noreply, socket
+
+    {:noreply,
+     socket
      |> assign(:binding, binding)
      |> stream(:logs, ["vik> #{source}"])}
   end
@@ -53,7 +55,7 @@ defmodule VikWeb.ShellLive do
   defp eval(source, binding) do
     {result, stdout, stderr} =
       IO.capture(fn -> safe_eval(source, binding) end)
-    
+
     send(self(), {:stdout, stdout})
     send(self(), {:stderr, stderr})
 
@@ -77,7 +79,7 @@ defmodule VikWeb.ShellLive do
     <div id="shell" class="flex flex-col h-full px-4 py-8">
       <h1 class="font-bold text-2xl mb-1">Shell</h1>
       <.terminal id="logs" lines={@streams.logs} scroll />
-      <input id="repl" phx-hook="Shell" type="text" name="source" autocomplete="off">
+      <input id="repl" phx-hook="Shell" type="text" name="source" autocomplete="off" />
     </div>
     """
   end

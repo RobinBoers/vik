@@ -63,9 +63,9 @@ defmodule Vik.System do
       "releases",
       :erlang.system_info(:otp_release),
       "OTP_VERSION"
-    ] 
-    |> Path.join() 
-    |> File.read!() 
+    ]
+    |> Path.join()
+    |> File.read!()
     |> String.trim()
   rescue
     _ -> System.otp_release()
@@ -81,7 +81,7 @@ defmodule Vik.System do
       processes: :erlang.system_info(:process_count),
       uptime: :erlang.statistics(:wall_clock) |> elem(0),
       total_run_queue: :erlang.statistics(:total_run_queue_lengths_all),
-      cpu_run_queue: :erlang.statistics(:total_run_queue_lengths),
+      cpu_run_queue: :erlang.statistics(:total_run_queue_lengths)
     }
   end
 
@@ -190,7 +190,7 @@ defmodule Vik.System do
       {ip, port} -> "#{:inet.ntoa(ip)}:#{port}"
     end
   end
-  
+
   defp format_socket_state(flags) do
     # See `:inet.fmt_status`
 

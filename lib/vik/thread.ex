@@ -63,7 +63,7 @@ defmodule Vik.Thread do
   def eval!(%Shard{} = shard) do
     {result, exports, includes} = Compiler.eval!(shard)
 
-    %Compiled{} = compiled = 
+    %Compiled{} = compiled =
       Compiled.new(result, exports, includes)
 
     Store.put(shard, compiled)
@@ -77,7 +77,7 @@ defmodule Vik.Thread do
     if Store.status(shard) == :up do
       Store.mark_stale(shard.slug)
       PubSub.broadcast(shard.slug, {:status, :stale})
-    end 
+    end
 
     :ok
   end
@@ -87,12 +87,12 @@ defmodule Vik.Thread do
     => Compiling #{shard.slug}
     """})
 
-    {result, stdout, stderr} = 
+    {result, stdout, stderr} =
       IO.capture(fn -> Compiler.eval(shard) end)
 
     PubSub.broadcast(shard.slug, {:stdout, stdout})
     PubSub.broadcast(shard.slug, {:stderr, stderr})
-      
+
     result
   end
 

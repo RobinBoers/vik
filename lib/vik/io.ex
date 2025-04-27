@@ -21,7 +21,7 @@ defmodule Vik.IO do
       Process.group_leader(self(), capture_io)
       Process.unregister(:standard_error)
       Process.register(capture_err, :standard_error)
-  
+
       result = fun.()
 
       {_, stdout} = StringIO.contents(capture_io)

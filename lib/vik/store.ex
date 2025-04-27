@@ -69,7 +69,7 @@ defmodule Vik.Store do
   @doc false
   @spec child_spec(Enum.t()) :: Supervisor.child_spec()
   defdelegate child_spec(state), to: Server
-  
+
   defmodule Server do
     @moduledoc false
     use GenServer

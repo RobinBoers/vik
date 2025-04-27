@@ -36,7 +36,7 @@ defmodule Vik.Logger do
   ## Examples
 
       @initial_lines 50
-  
+
       def mount(_, _, socket) do
         Vik.Logger.subscribe()
 
@@ -99,7 +99,7 @@ defmodule Vik.Logger do
   @impl true
   def handle_cast({:append, message}, state) do
     PubSub.broadcast(@topic, {:lines, [message]})
-  
+
     message
     |> decorate_message()
     |> push_notification()
