@@ -10,11 +10,10 @@ defmodule VikWeb.ShardLive do
   alias Vik.Thread
 
   import Ecto.Query
+  import Structo
   import VikWeb.LogLive, only: [terminal: 1]
 
   require Logger
-
-  # TODO(robin): disable deploy button during long compilations
 
   on_mount {VikWeb.SystemHandler, :static}
 
@@ -128,6 +127,8 @@ defmodule VikWeb.ShardLive do
     Task.async(fn -> Thread.eval(shard) end)
   end
 
+  # TODO(robin): disable deploy button during long compilations
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -160,6 +161,7 @@ defmodule VikWeb.ShardLive do
           </div>
           <div class="flex-grow"></div>
           <a
+            :if={plug_exposed?(@compiled)}
             href={~p"/api/#{@shard.slug}"}
             target="_blank"
             title="Open in new tab"
@@ -256,5 +258,10 @@ defmodule VikWeb.ShardLive do
 
   defp format_export({_mod, fun, arity}) do
     inspect({fun, arity})
+  end
+
+  defp plug_exposed?(nil), do: false
+  defp plug_exposed?(~m{:Compiled, module}) do
+    function_exported?(module, :__call__, 0)
   end
 end
