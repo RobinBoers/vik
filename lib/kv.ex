@@ -15,7 +15,7 @@ defmodule KV do
 
   @type table :: atom()
   @type key :: atom()
-  @type value :: term()
+  @type object :: term()
 
   typedstruct module: State do
     field :root, String.t(), required: true
@@ -31,10 +31,9 @@ defmodule KV do
   end
 
   @doc """
-  Puts the given `value` in `table` under `key`.
+  Puts the given `object` in `table`.
 
-  If the table does not exist yet, it is created
-  on-demand.
+  If the table does not exist yet, it is created on-demand.
 
   ## Examples
 
@@ -43,13 +42,13 @@ defmodule KV do
         :ok
 
   """
-  @spec put(table(), key(), value()) :: :ok | :error
-  def put(table, key, value) do
-    GenServer.call(__MODULE__, {:put, table, key, value})
+  @spec put(table(), key(), object()) :: :ok | :error
+  def put(table, key, object) do
+    GenServer.call(__MODULE__, {:put, table, key, object})
   end
 
   @doc """
-  Gets the value for the given `key` from `table`.
+  Gets the object for the given `key` from `table`.
 
   ## Examples
 
@@ -63,7 +62,7 @@ defmodule KV do
       :error
 
   """
-  @spec fetch(table(), key()) :: {:ok, value()} | :error
+  @spec fetch(table(), key()) :: {:ok, object()} | :error
   def fetch(table, key) do
     GenServer.call(__MODULE__, {:fetch, table, key})
   end
@@ -84,20 +83,48 @@ defmodule KV do
       nil
 
   """
-  @spec get(table(), key()) :: value() | nil
+  @spec get(table(), key()) :: object() | nil
   def get(table, key) do
     case fetch(table, key) do
-      {:ok, value} -> value
+      {:ok, object} -> object
       :error -> nil
     end
   end
 
   @doc """
-  Lists all values in the given `table`.
+  Deletes the object for the given `key` from `table`.
+
+  ## Examples
+
+      iex> KV.put(:users, 1, %User{id: 1, name: "Robin", age: 18})
+      iex> KV.get(:users, 1)
+      %User{id: 1, name: "Robin", age: 18}
+
+      iex> KV.delete(:users, 1)
+      iex> KV.get(:users, 1)
+      nil
+
   """
-  @spec list(table()) :: [value()]
+  @spec delete(table(), key()) :: :ok | :error
+  def delete(table, key) do
+    GenServer.call(__MODULE__, {:delete, table, key})
+  end
+
+  @doc """
+  Lists all objects in the given `table`.
+  """
+  @spec list(table()) :: [object()]
   def list(table) do
     GenServer.call(__MODULE__, {:list, table})
+  end
+
+  @doc """
+  Deletes all objects from the given `table`,
+  effectively emptying it.
+  """
+  @spec clear(table()) :: :ok | :error
+  def clear(table) do
+    GenServer.call(__MODULE__, {:clear, table})
   end
 
   @doc false
@@ -108,10 +135,10 @@ defmodule KV do
 
   @doc false
   @impl true
-  def handle_call({:put, table, key, value}, _from, state) do
+  def handle_call({:put, table, key, object}, _from, state) do
     state = ensure_table!(state, table)
 
-    :dets.insert(table, {key, value})
+    :dets.insert(table, {key, object})
     {:reply, :ok, state}
   end
 
@@ -121,8 +148,19 @@ defmodule KV do
     state = ensure_table!(state, table)
 
     case :dets.lookup(table, key) do
-      [{^key, value}] -> {:reply, {:ok, value}, state}
+      [{^key, object}] -> {:reply, {:ok, object}, state}
       [] -> {:reply, :error, state}
+      {:error, _} -> {:reply, :error, state}
+    end
+  end
+
+  @doc false
+  @impl true
+  def handle_call({:delete, table, key}, _from, state) do
+    state = ensure_table!(state, table)
+
+    case :dets.delete(table, key) do
+      :ok -> {:reply, :ok, state}
       {:error, _} -> {:reply, :error, state}
     end
   end
@@ -134,6 +172,17 @@ defmodule KV do
     records = :dets.foldl(fn {_, v}, acc -> [v | acc] end, [], table)
 
     {:reply, records, state}
+  end
+
+  @doc false
+  @impl true
+  def handle_call({:clear, table}, _from, state) do
+    state = ensure_table!(state, table)
+
+    case :dets.delete_all_objects(table) do
+      :ok -> {:reply, :ok, state}
+      {:error, _} -> {:reply, :error, state}
+    end
   end
 
   @doc false
