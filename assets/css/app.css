@@ -78,6 +78,22 @@
     padding-top: 0.5rem;
     padding-bottom: 0.75rem;
   }
+
+  #shell input {
+    --tw-ring-color: transparent;
+
+    font-family: monospace;
+    font-size: 1.5rem;
+    width: 100%;
+    border: 2px solid #e5e7eb;
+    border-top: none;
+    outline: none;
+    padding: 0.125rem 0.25rem;
+  }
+
+  #shell input:focus {
+    border: 2px dotted #212121;
+  }
 }
 
 /* Hacks to make my JS hacks work :) */

@@ -58,6 +58,7 @@ defmodule VikWeb do
       alias Phoenix.LiveView.Socket
 
       import VikWeb, only: [
+        stream_color: 4,
         stream_lines: 2,
         stream_lines: 3
       ]
@@ -130,6 +131,11 @@ defmodule VikWeb do
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
+  end
+
+  def stream_color(socket, assign, lines, color) do
+    lines = Enum.map(lines, &{:safe, "<span class='#{color}'>#{&1}</span>"})
+    Phoenix.LiveView.stream(socket, assign, lines)
   end
 
   def stream_lines(socket, assign, initial_lines \\ []) do

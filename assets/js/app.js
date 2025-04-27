@@ -6,6 +6,7 @@ import topbar from "../vendor/topbar";
 
 import { Hook as CodeMirror } from "./codemirror";
 import { Hook as Scroll } from "./scroll";
+import { Hook as Shell } from "./shell";
 import { Hook as SlowSubmit } from "./forms";
 
 import { onBeforeUpdate } from "./forms";
@@ -17,7 +18,7 @@ let csrfToken = document
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { CodeMirror, Scroll, SlowSubmit },
+  hooks: { CodeMirror, Scroll, Shell, SlowSubmit },
   dom: { onBeforeElUpdated: onBeforeUpdate }
 });
 
