@@ -96,11 +96,26 @@ defmodule Vik.Thread do
     result
   end
 
-  @spec provision() :: :ok
-  def provision do
+  @spec provision(integer()) :: :ok
+  def provision(attempt \\ 0)
+
+  def provision(attempt) when attempt > 10 do
+    raise "Could not provision; is master-db up?"
+  end
+
+  def provision(attempt) do
     for %Shard{} = shard <- Repo.all(Shard) do
       eval(shard)
     end
+  rescue
+    e in DBConnection.ConnectionError ->
+      Process.sleep(500)
+      provision(attempt + 1)
+    e in Postgrex.Error ->
+      Process.sleep(500)
+      provision(attempt + 1)
+    e ->
+      reraise e, __STACKTRACE__
   end
 
   @doc false
