@@ -188,7 +188,7 @@ defmodule KV do
   @doc false
   @impl true
   def terminate(_reason, state) do
-    state
+    state.tables
     |> Map.keys()
     |> Enum.each(&:dets.close/1)
   end
