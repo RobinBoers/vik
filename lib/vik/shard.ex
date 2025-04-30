@@ -23,10 +23,15 @@ defmodule Vik.Shard do
           source_code: String.t()
         }
 
+  # Would conflict with native Vik routers, essentially
+  # making the Shard uneditable.
+  @illegal_slugs ["login", "new", "shell", "log"]
+
   def new_changeset(attrs \\ %{}) do
     %__MODULE__{}
     |> cast(attrs, [:slug, :title])
     |> validate_required([:slug, :title])
+    |> validate_exclusion(:slug, @illegal_slugs, message: "is reserved")
     |> unique_constraint(:slug)
   end
 
