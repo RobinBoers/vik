@@ -18,16 +18,22 @@ defmodule KV do
   @type object :: term()
 
   typedstruct module: State do
+    @moduledoc false
+
     field :root, String.t(), required: true
     field :tables, map(), default: %{}
   end
 
+  @type start_opts :: [
+          root: Path.t()
+        ]
+
   @doc """
   Starts the store.
   """
+  @spec start_link(start_opts()) :: :ok
   def start_link(opts) do
-    state = %State{root: Keyword.get(opts, :root) || "/tmp"}
-    GenServer.start_link(__MODULE__, state, name: __MODULE__)
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
   @doc """
@@ -129,8 +135,8 @@ defmodule KV do
 
   @doc false
   @impl true
-  def init(state) do
-    {:ok, state}
+  def init(opts) do
+    {:ok, %State{root: Keyword.get(opts, :root) || "/tmp"}}
   end
 
   @doc false

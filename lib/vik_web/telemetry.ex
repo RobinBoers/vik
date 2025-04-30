@@ -1,13 +1,15 @@
 defmodule VikWeb.Telemetry do
+  @moduledoc false
   use Supervisor
   import Telemetry.Metrics
 
-  def start_link(arg) do
-    Supervisor.start_link(__MODULE__, arg, name: __MODULE__)
+  @spec start_link([]) :: :ok
+  def start_link(opts) do
+    Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
   @impl true
-  def init(_arg) do
+  def init(_opts) do
     children = [
       # Telemetry poller will execute the given period measurements
       # every 10_000ms. Learn more here: https://hexdocs.pm/telemetry_metrics

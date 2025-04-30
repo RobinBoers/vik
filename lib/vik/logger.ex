@@ -15,15 +15,20 @@ defmodule Vik.Logger do
       export WEBHOOK_URL="https://discord.com/api/webhooks/..."
 
   The webhook will receive messages in the following JSON
-  structured format:
+  structured format (as defined by `t:Vik.Webhook.payload/0`):
 
-      {"content": "** (RuntimeError) hewwo world :3"}
-    
+      {"event": "logger.message", "content": "** (RuntimeError) hewwo world :3"}
+
   """
   use GenServer
 
   alias Vik.PubSub
+  alias Vik.Webhook
 
+  @doc """
+  Starts the server.
+  """
+  @spec start_link([]) :: :ok
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
@@ -108,9 +113,7 @@ defmodule Vik.Logger do
   end
 
   def push_notification(message) do
-    if url = System.get_env("WEBHOOK_URL") do
-      Req.post!(url, json: %{content: message})
-    end
+    Webhook.send("logger.message", message)
   end
 
   defp decorate_message(message) do
