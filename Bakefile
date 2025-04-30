@@ -11,7 +11,7 @@ serve() {
 }
 
 build() {
-	docker build --context=$CTX -t $TAG .
+	docker --context=$CTX build -t $TAG .
 }
 
 deploy() {
