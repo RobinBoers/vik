@@ -113,7 +113,7 @@ defmodule Vik.Logger do
   end
 
   def push_notification(message) do
-    Webhook.send("logger.message", message)
+    Webhook.push("logger.message", message)
   end
 
   defp decorate_message(message) do

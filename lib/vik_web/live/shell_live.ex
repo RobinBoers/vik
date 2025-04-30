@@ -4,7 +4,6 @@ defmodule VikWeb.ShellLive do
 
   alias Vik.IO
 
-  import Structo
   import VikWeb.LogLive, only: [terminal: 1]
 
   on_mount {VikWeb.SystemHandler, :static}

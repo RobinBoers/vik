@@ -108,10 +108,10 @@ defmodule Vik.Thread do
       eval(shard)
     end
   rescue
-    e in DBConnection.ConnectionError ->
+    _ in DBConnection.ConnectionError ->
       Process.sleep(500)
       provision(attempt + 1)
-    e in Postgrex.Error ->
+    _ in Postgrex.Error ->
       Process.sleep(500)
       provision(attempt + 1)
     e ->
