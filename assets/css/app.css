@@ -111,5 +111,5 @@ body > div {
   @apply h-full flex flex-col;
 }
 body > div > main {
-  @apply flex-grow;
+  @apply flex-grow overflow-hidden;
 }

@@ -148,7 +148,6 @@ defmodule VikWeb.ShardLive do
         main {   
           display: flex;
           flex-direction: column;
-          overflow: hidden;
         }
         main > * {
           width: 100%;
