@@ -1,6 +1,8 @@
 defmodule VikWeb.Router do
   use VikWeb, :router
 
+  import VikWeb.Auth
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -8,7 +10,7 @@ defmodule VikWeb.Router do
     plug :put_root_layout, html: {VikWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :basic_auth
+    plug :fetch_basic_auth
   end
 
   pipeline :api do
@@ -18,7 +20,13 @@ defmodule VikWeb.Router do
   scope "/", VikWeb do
     pipe_through :browser
 
-    live "/", DashboardLive, :list
+    live "/", HomeLive, :landing
+  end
+
+  scope "/", VikWeb do
+    pipe_through [:browser, :require_auth]
+
+    live "/login", LoginLive, :login
     live "/new", NewLive, :new
     live "/shell", ShellLive, :shell
     live "/log", LogLive, :log
@@ -29,16 +37,5 @@ defmodule VikWeb.Router do
     pipe_through :api
     get "/:slug", ShardController, :execute
     post "/:slug", ShardController, :execute
-  end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", VikWeb do
-  #   pipe_through :api
-  # end
-
-  defp basic_auth(conn, _opts) do
-    username = System.get_env("AUTH_USERNAME", "dummy")
-    password = System.get_env("AUTH_PASSWORD", "vikingsarecool")
-    Plug.BasicAuth.basic_auth(conn, username: username, password: password)
   end
 end
