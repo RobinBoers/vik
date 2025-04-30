@@ -60,7 +60,7 @@ defmodule VikWeb.ShardLive do
   def handle_event("submit", %{"action" => "save", "shard" => params}, socket) do
     %Shard{} = shard = save_shard(socket.assigns.shard, params)
     Thread.mark_stale(shard)
-    Webhook.send("shard.save", shard)
+    Webhook.push("shard.save", shard)
     {:noreply, assign_changeset(socket, shard)}
   end
 
@@ -70,10 +70,10 @@ defmodule VikWeb.ShardLive do
     %Socket{} = socket = assign_changeset(socket, shard)
 
     if socket.assigns.task do
-      Webhook.send("shard.save", shard)
+      Webhook.push("shard.save", shard)
       {:noreply, put_flash(socket, :error, "Cannot run deploy in parallel.")}
     else
-      Webhook.send("shard.deploy", shard)
+      Webhook.push("shard.deploy", shard)
       {:noreply, assign(socket, task: launch_compile_worker(shard))}
     end
   end
