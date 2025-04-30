@@ -9,6 +9,7 @@ defmodule Vik.Shard do
 
   import Ecto.Changeset
 
+  @derive Jason.Encoder
   schema "shards" do
     field :slug, :string
     field :title, :string
