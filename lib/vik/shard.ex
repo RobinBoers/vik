@@ -9,7 +9,7 @@ defmodule Vik.Shard do
 
   import Ecto.Changeset
 
-  @derive Jason.Encoder
+  @derive {Jason.Encoder, only: [:slug, :source_code]}
   schema "shards" do
     field :slug, :string
     field :title, :string
