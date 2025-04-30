@@ -1,6 +1,6 @@
 defmodule KV do
   @moduledoc """
-  A modulear key-value store for arbitrary, 
+  A modular key-value store for arbitrary, 
   disk-persisted term storage based on `:dets`.
 
   ## Usage
@@ -43,9 +43,9 @@ defmodule KV do
 
   ## Examples
 
-        iex> KV.put(:users, 1, %User{id: 1, name: "Robin", age: 18})
-        iex> KV.put(:users, 2, %User{id: 2, name: "Gijs", age: 15})
-        :ok
+      iex> KV.put(:users, 1, %User{id: 1, name: "Robin", age: 18})
+      iex> KV.put(:users, 2, %User{id: 2, name: "Gijs", age: 15})
+      :ok
 
   """
   @spec put(table(), key(), object()) :: :ok | :error
@@ -118,6 +118,12 @@ defmodule KV do
 
   @doc """
   Lists all objects in the given `table`.
+
+  ## Examples
+
+      iex> KV.list(:users)
+      [%User{id: 1, name: "Robin", age: 18}, %User{id: 2, name: "Gijs", age: 15}]
+
   """
   @spec list(table()) :: [object()]
   def list(table) do
@@ -125,8 +131,18 @@ defmodule KV do
   end
 
   @doc """
-  Deletes all objects from the given `table`,
-  effectively emptying it.
+  Deletes all objects from the given `table`, effectively
+  emptying it.
+
+  ## Examples
+
+      iex> KV.list(:users)
+      [%User{id: 1, name: "Robin", age: 18}, %User{id: 2, name: "Gijs", age: 15}]
+
+      iex> KV.clear(:users)
+      iex> KV.list(:users)
+      []
+
   """
   @spec clear(table()) :: :ok | :error
   def clear(table) do
