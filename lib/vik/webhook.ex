@@ -12,6 +12,8 @@ defmodule Vik.Webhook do
 
   """
 
+  import Structo
+
   @typedoc """
   Implemented events:
 
@@ -41,10 +43,14 @@ defmodule Vik.Webhook do
   """
   @spec push(event(), term()) :: :ok
   def push(event, data) do
-    if url = System.get_env("WEBHOOK_URL") do
-      Req.post!(url, json: %{event: event, content: data})
-    end
+    spawn(fn -> maybe_push(~m{event, content: data}) end)
 
     :ok
+  end
+
+  defp maybe_push(payload) do
+    if url = System.get_env("WEBHOOK_URL") do
+      Req.post!(url, json: payload)
+    end
   end
 end
