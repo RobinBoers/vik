@@ -91,16 +91,27 @@ defmodule Vik.Logger do
     GenServer.call(__MODULE__, {:tail, n})
   end
 
+  @doc """
+  Delete `n` oldest log entries.
+  """
+  @spec clear(pos_integer() | :all) :: :ok
+  def clear(n \\ :all) when n > 0 or n == :all do
+    GenServer.cast(__MODULE__, {:clear, n})
+  end
+
+  @doc false
   @impl true
   def init(_opts) do
     {:ok, []}
   end
 
+  @doc false
   @impl true
   def handle_call({:tail, n}, _from, state) do
     {:reply, Enum.take(state, n), state}
   end
 
+  @doc false
   @impl true
   def handle_cast({:append, message}, state) do
     PubSub.broadcast(@topic, {:lines, [message]})
@@ -112,7 +123,19 @@ defmodule Vik.Logger do
     {:noreply, [message | state]}
   end
 
-  def push_notification(message) do
+  @doc false
+  @impl true
+  def handle_cast({:clear, :all}, _state) do
+    {:noreply, []}
+  end
+
+  @doc false
+  @impl true
+  def handle_cast({:clear, n}, state) do
+    {:noreply, Enum.take(state, length(state) - n)}
+  end
+
+  defp push_notification(message) do
     Webhook.push("logger.message", message)
   end
 

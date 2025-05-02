@@ -24,6 +24,12 @@ defmodule VikWeb.LogLive do
   end
 
   @impl true
+  def handle_event("clear", _, socket) do
+    Logger.clear()
+    {:noreply, stream(socket, :logs, [], reset: true)}
+  end
+
+  @impl true
   def handle_info({:lines, lines}, socket) do
     {:noreply, stream(socket, :logs, lines, at: 0)}
   end
@@ -31,7 +37,14 @@ defmodule VikWeb.LogLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div id="log" class="flex flex-col h-full px-4 py-8">
+    <div
+      id="log"
+      class="flex flex-col h-full px-4 py-8"
+      phx-window-keydown="clear"
+      phx-key="k"
+      phx-key-meta="true"
+      phx-key-ctrl="true"
+    >
       <h1 class="font-bold text-2xl mb-1">Logs</h1>
       <.terminal id="logs" lines={@streams.logs} />
     </div>

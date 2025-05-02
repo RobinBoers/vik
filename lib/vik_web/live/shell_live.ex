@@ -41,6 +41,11 @@ defmodule VikWeb.ShellLive do
   end
 
   @impl true
+  def handle_event("clear", _, socket) do
+    {:noreply, stream(socket, :logs, [], reset: true)}
+  end
+
+  @impl true
   def handle_event("execute", %{"source" => source}, socket) do
     {_result, binding} = eval(source, socket.assigns.binding)
 
@@ -73,7 +78,14 @@ defmodule VikWeb.ShellLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div id="shell" class="flex flex-col h-full px-4 py-8">
+    <div
+      id="shell"
+      class="flex flex-col h-full px-4 py-8"
+      phx-window-keydown="clear"
+      phx-key="k"
+      phx-key-meta="true"
+      phx-key-ctrl="true"
+    >
       <h1 class="font-bold text-2xl mb-1">Shell</h1>
       <.terminal id="logs" lines={@streams.logs} scroll />
       <input id="repl" phx-hook="Shell" type="text" name="source" autofocus autocomplete="off" />
