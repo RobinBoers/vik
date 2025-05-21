@@ -117,10 +117,10 @@ defmodule Vik.System do
 
   ## Constructors
 
-  defp pid_or_port_details(pid) when is_pid(pid), do: to_process_details(pid)
-  defp pid_or_port_details(name) when is_atom(name), do: to_process_details(name)
-  defp pid_or_port_details(port) when is_port(port), do: to_port_details(port)
-  defp pid_or_port_details(reference) when is_reference(reference), do: reference
+  def pid_or_port_details(pid) when is_pid(pid), do: to_process_details(pid)
+  def pid_or_port_details(name) when is_atom(name), do: to_process_details(name)
+  def pid_or_port_details(port) when is_port(port), do: to_port_details(port)
+  def pid_or_port_details(reference) when is_reference(reference), do: reference
 
   def to_process_details(pid) when is_pid(pid) and node(pid) == node() do
     {name, initial_call} = resolve_process_details(pid)
@@ -174,44 +174,6 @@ defmodule Vik.System do
   defp format_initial_call({:supervisor, mod, arity}), do: Exception.format_mfa(mod, :init, arity)
   defp format_initial_call({m, f, a}), do: Exception.format_mfa(m, f, a)
   defp format_initial_call(nil), do: nil
-
-  defp format_address({:error, :enotconn}), do: "*:*"
-  defp format_address({:error, _}), do: " "
-
-  defp format_address({:ok, address}) do
-    # The address is formatted based on the implementation of `:inet.fmt_addr/2`
-
-    case address do
-      {{0, 0, 0, 0}, port} -> "*:#{port}"
-      {{0, 0, 0, 0, 0, 0, 0, 0}, port} -> "*:#{port}"
-      {{127, 0, 0, 1}, port} -> "localhost:#{port}"
-      {{0, 0, 0, 0, 0, 0, 0, 1}, port} -> "localhost:#{port}"
-      {:local, path} -> "local:#{path}"
-      {ip, port} -> "#{:inet.ntoa(ip)}:#{port}"
-    end
-  end
-
-  defp format_socket_state(flags) do
-    # See `:inet.fmt_status`
-
-    case Enum.sort(flags) do
-      [:accepting | _] -> "ACCEPTING"
-      [:bound, :busy, :connected | _] -> "BUSY"
-      [:bound, :connected | _] -> "CONNECTED"
-      [:bound, :listen, :listening | _] -> "LISTENING"
-      [:bound, :listen | _] -> "LISTEN"
-      [:bound, :connecting | _] -> "CONNECTING"
-      [:bound, :open] -> "BOUND"
-      [:bound, :selected] -> "CONNECTED"
-      [:connected, :open] -> "CONNECTED"
-      [:open] -> "IDLE"
-      [] -> "CLOSED"
-      sorted -> inspect(sorted)
-    end
-  end
-
-  defp sort_dir_multiplier(:asc), do: 1
-  defp sort_dir_multiplier(:desc), do: -1
 
   @doc """
   All connected nodes (including the current node).
