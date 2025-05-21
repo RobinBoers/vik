@@ -95,7 +95,7 @@ defmodule Vik.Compiler do
     extract_exports(shard.slug, shard.source_code)
   end
 
-  @regex ~r/export\s+([A-Za-z0-9_.]+)(?::\s*(\d+))?/
+  @regex ~r/export\s+([A-Za-z0-9_?!]+)(?::\s*(\d+))?/
 
   @spec extract_exports(slug(), source()) :: [Vik.export()]
   defp extract_exports(slug, source) when is_binary(slug) and is_binary(source) do
