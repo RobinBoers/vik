@@ -9,7 +9,6 @@ export const Hook = {
     
     const restorehist = () => {
       const stored = localStorage.getItem("shell-hist");
-      console.log(stored);
       return stored ? JSON.parse(stored) : [];
     }
 
@@ -20,6 +19,7 @@ export const Hook = {
       if(e.key == 'Enter') {
         e.preventDefault();
         this.pushEvent("execute", { source: this.el.value });
+        if(this.el.value.trim() == "") return;
         hist.push(this.el.value);
         head = hist.length;
         this.el.value = "";
