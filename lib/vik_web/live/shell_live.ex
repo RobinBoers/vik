@@ -41,8 +41,13 @@ defmodule VikWeb.ShellLive do
   end
 
   @impl true
-  def handle_event("clear", _, socket) do
+  def handle_event("keydown", %{"ctrl" => true, "key" => "k"}, socket) do
     {:noreply, stream(socket, :logs, [], reset: true)}
+  end
+
+  @impl true
+  def handle_event("keydown", _, socket) do
+    {:noreply, socket}
   end
 
   @impl true
@@ -81,10 +86,8 @@ defmodule VikWeb.ShellLive do
     <div
       id="shell"
       class="flex flex-col h-full px-4 py-8"
-      phx-window-keydown="clear"
-      phx-key="k"
-      phx-key-meta="true"
-      phx-key-ctrl="true"
+      phx-window-keydown="keydown"
+      phx-throttle="500"
     >
       <h1 class="font-bold text-2xl mb-1">Shell</h1>
       <.terminal id="logs" lines={@streams.logs} scroll />

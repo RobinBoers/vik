@@ -24,9 +24,14 @@ defmodule VikWeb.LogLive do
   end
 
   @impl true
-  def handle_event("clear", _, socket) do
+  def handle_event("keydown", %{"ctrl" => true, "key" => "k"}, socket) do
     Logger.clear()
     {:noreply, stream(socket, :logs, [], reset: true)}
+  end
+
+  @impl true
+  def handle_event("keydown", _, socket) do
+    {:noreply, socket}
   end
 
   @impl true
@@ -40,10 +45,8 @@ defmodule VikWeb.LogLive do
     <div
       id="log"
       class="flex flex-col h-full px-4 py-8"
-      phx-window-keydown="clear"
-      phx-key="k"
-      phx-key-meta="true"
-      phx-key-ctrl="true"
+      phx-window-keydown="shortcut"
+      phx-throttle="500"
     >
       <h1 class="font-bold text-2xl mb-1">Logs</h1>
       <.terminal id="logs" lines={@streams.logs} />

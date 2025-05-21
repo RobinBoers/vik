@@ -18,8 +18,9 @@ let csrfToken = document
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
+  metadata: { keydown: (e, _) => ({ ctrl: e.ctrlKey || e.metaKey }) },
   hooks: { CodeMirror, Scroll, Shell, SlowSubmit },
-  dom: { onBeforeElUpdated: onBeforeUpdate }
+  dom: { onBeforeElUpdated: onBeforeUpdate },
 });
 
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
