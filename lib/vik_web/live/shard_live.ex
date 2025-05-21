@@ -16,6 +16,7 @@ defmodule VikWeb.ShardLive do
 
   require Logger
 
+  on_mount VikWeb.Collab
   on_mount {VikWeb.SystemHandler, :static}
 
   @impl true
@@ -32,9 +33,9 @@ defmodule VikWeb.ShardLive do
     socket
     |> assign(:task, nil)
     |> assign(:status, Store.status(shard))
-    |> stream_lines(:logs)
     |> assign_compiled(shard)
     |> assign_changeset(shard)
+    |> stream_lines(:logs)
   end
 
   defp assign_compiled(socket, shard) do

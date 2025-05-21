@@ -1,13 +1,18 @@
-import { EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view";
+import { EditorView, ViewPlugin } from "@codemirror/view";
 import { Text, ChangeSet } from "@codemirror/state";
 
 import {
-  Update,
   receiveUpdates,
   sendableUpdates,
   collab,
   getSyncedVersion,
 } from "@codemirror/collab";
+
+function pushEventAsync(lv, event, payload) {
+  return new Promise((resolve) => {
+    lv.pushEvent(event, payload, resolve);
+  });
+}
 
 function pushUpdates(lv, version, fullUpdates) {
   // Strip off transaction data
@@ -17,9 +22,67 @@ function pushUpdates(lv, version, fullUpdates) {
     effects: u.effects,
   }));
 
-  return new Promise((resolve) => {
-    // lv.pushEvent("collab-updates", {})
-    // socket.emit("pushUpdates", version, );
-    // socket.once("pushUpdateResponse", resolve);
-  });
+  return pushEventAsync(lv, "collab:push", { version, updates });
+}
+
+function pullUpdates(lv, version) {
+  return pushEventAsync(lv, "collab:pull", { version }).then((updates) =>
+    updates.map((u) => ({
+      changes: ChangeSet.fromJSON(u.changes),
+      clientID: u.clientID,
+    }))
+  );
+}
+
+// async function createPeer(lv) {
+//   let { version, doc } = await getDocument(connection)
+//   let state = EditorState.create({
+//     doc,
+//     extensions: [basicSetup, peerExtension(version, lv)]
+//   });
+
+//   return new EditorView({state})
+// }
+
+function peerExtension(startVersion, lv) {
+  let plugin = ViewPlugin.fromClass(class {
+    constructor(view) {
+      this.view = view;
+      this.pushing = false;
+      this.done = false;
+      this.pull();
+    }
+
+    update(update) {
+      if (update.docChanged) this.push()
+    }
+
+    async push() {
+      let updates = sendableUpdates(this.view.state)
+      if (this.pushing || !updates.length) return
+      this.pushing = true
+      let version = getSyncedVersion(this.view.state)
+      await pushUpdates(lv, version, updates)
+      this.pushing = false
+      // Regardless of whether the push failed or new updates came in
+      // while it was running, try again if there's updates remaining
+      if (sendableUpdates(this.view.state).length)
+        setTimeout(() => this.push(), 100)
+    }
+
+    async pull() {
+      while (!this.done) {
+        let version = getSyncedVersion(this.view.state)
+        let updates = await pullUpdates(lv, version)
+        // TODO(robin): in my implementation, this instantly returns, and
+        // instead, the liveview gets the updates pushed. we should handle
+        // that properly here.
+        this.view.dispatch(receiveUpdates(this.view.state, updates))
+      }
+    }
+
+    destroy() { this.done = true }
+  })
+
+  return [collab({startVersion}), plugin]
 }

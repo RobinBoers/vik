@@ -4,21 +4,50 @@ defmodule Vik.Authority do
   sessions. Holds the authoritative master copy of every shard.
 
   This enables real-time collaborative editing across multiple
-  browser windows or computers.
+  browser windows or devices.
   """
   use GenServer
   use TypedStruct
 
-  alias Vik.PubSub
+  import Structo
+
+  @type version :: non_neg_integer()
 
   typedstruct module: Session do
     @moduledoc false
 
-    field :doc, term()
-    field :updated, [term()]
+    field :version, integer(), default: 0
+    field :updates, [Update.t()], default: []
   end
 
-  @type suid :: binary()
+  typedstruct module: Update do
+    @moduledoc """
+    JSON payload consisting of changes to a CodeMirror document. 
+    The contents of these updates is seen as irrelevant to the 
+    authority.
+
+    The `Vik.Authority` simply passes them along to the 
+    concerning CodeMirror instances for further processing.
+    """
+
+    field :client_id, String.t()
+    field :changes, [term()]
+
+    defimpl Jason.Encoder do
+      def encode(%{client_id: cid, changes: changes}, opts) do
+        Jason.Encode.map(%{"clientID" => cid, "changes" => changes}, opts)
+      end
+    end
+  end
+
+  @typedoc """
+  Session identifiers uniquely identify a collaborative
+  session.
+
+  For convience, Shard slugs double as valid session 
+  identifiers as well.
+  """
+  @type suid :: Vik.slug()
   @opaque state :: %{suid() => Session.t()}
 
   @doc """
@@ -32,21 +61,79 @@ defmodule Vik.Authority do
   @doc """
   Joins a collaboration session.
   """
-  @spec join(suid()) :: :ok
-  def join(suid) do
-    PubSub.subscribe(suid)
-    ensure_session!(suid)
+  @spec join(suid()) :: :ok | {:error, term()}
+  def join(suid), do: subscribe(suid)
 
-    :ok
+  @doc """
+  Pulls any changes made since `version`.
+  """
+  @spec pull_changes(suid(), version()) :: [Update.t()]
+  def pull_changes(suid, version) do
+    GenServer.call(__MODULE__, {:pull_changes, suid, version})
   end
 
-  defp ensure_session!(suid) do
-    GenServer.cast(__MODULE__, {:ensure_session, suid})
+  @doc """
+  Pushes new changes starting from `version`.
+  """
+  @spec push_changes(suid(), version(), [Update.t()]) :: :ok | :rejected
+  def push_changes(suid, version, updates) do
+    GenServer.call(__MODULE__, {:push_changes, suid, version, updates})
   end
 
   @doc false
   @impl true
   def init(_opts) do
-    {:ok, %{}}
+    {:ok, Map.new()}
+  end
+
+  @doc false
+  @impl true
+  def handle_call({:pull_changes, suid, version}, _from, state) do
+    %Session{} = session = Map.get(state, suid, %Session{})
+    behind = session.version - version
+
+    {:reply, pending_changes(session, behind), state}
+  end
+
+  @doc false
+  @impl true
+  def handle_call({:push_changes, suid, version, updates}, _from, state) do
+    %Session{} = session = Map.get(state, suid, %Session{})
+    
+    if version != session.version do
+      {:reply, :rejected, state}
+    else
+      session = append_changes(session, updates)
+      state = Map.put(state, suid, session)
+
+      # Notify other clients of the new updates.
+      broadcast(suid, updates)
+  
+      {:reply, :ok, state}
+    end
+  end
+
+  defp pending_changes(_session, x) when x < 0, do: []
+  defp pending_changes(session, behind) do
+    session.updates |> Enum.take(behind) |> Enum.reverse()
+  end
+
+  defp append_changes(session, new) do
+    version = session.version + Enum.count(new)
+    updates = Enum.reverse(new) ++ session.updates
+
+    ~m{:Session, version, updates}
+  end
+
+  # PubSub helpers
+
+  @topic "@collab/"
+
+  defp subscribe(suid) when is_binary(suid) do
+    Vik.PubSub.subscribe(@topic <> suid)
+  end
+
+  defp broadcast(suid, message) when is_binary(suid) do
+    Vik.PubSub.broadcast(@topic <> suid, message)
   end
 end
