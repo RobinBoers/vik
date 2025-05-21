@@ -6,7 +6,7 @@ defmodule VikWeb.HomeLive do
   on_mount {VikWeb.SystemHandler, :static}
 
   @impl true
-  def mount(_params, session, socket) do
+  def mount(_params, _session, socket) do
     {:ok, socket, if socket.assigns.authenticated? do [] else [layout: false] end}
   end
 

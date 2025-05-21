@@ -19,7 +19,7 @@ defmodule VikWeb.Auth do
   def fetch_basic_auth(conn, _opts) do
     case validate_credentials(conn) do
       {:ok, username} -> log_in(conn, username)
-      :error -> assign(conn, :current_user, nil)
+      :error -> conn |> renew_session() |> log_in(nil)
     end
   end
   
@@ -33,7 +33,7 @@ defmodule VikWeb.Auth do
   end
 
   defp validate_credentials(conn) do
-    app_password = System.get_env("AUTH_PASSWORD", "vikingsarecool")        
+    app_password = System.get_env("AUTH_PASSWORD", "vikingsarecool1")        
 
     with {username, password} <- parse_basic_auth(conn) do
       if secure_compare(password, app_password) do
@@ -48,5 +48,18 @@ defmodule VikWeb.Auth do
     conn
     |> assign(:current_user, username)
     |> put_session(:current_user, username)
+  end
+
+  # This function renews the session ID and erases the whole
+  # session to avoid fixation attacks. If there is any data
+  # in the session you may want to preserve after log in/log out,
+  # you must explicitly fetch the session data before clearing
+  # and then immediately set it after clearing.
+  defp renew_session(conn) do
+    delete_csrf_token()
+
+    conn
+    |> configure_session(renew: true)
+    |> clear_session()
   end
 end
