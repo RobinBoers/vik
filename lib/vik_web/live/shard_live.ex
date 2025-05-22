@@ -2,6 +2,7 @@ defmodule VikWeb.ShardLive do
   @moduledoc false
   use VikWeb, :live_view
 
+  alias Vik.Authority
   alias Vik.Repo
   alias Vik.Store
   alias Vik.Shard
@@ -28,6 +29,7 @@ defmodule VikWeb.ShardLive do
   end
 
   defp mount_shard(socket, shard) do
+    Authority.join(shard.slug)
     PubSub.subscribe(shard.slug)
 
     socket
@@ -130,6 +132,11 @@ defmodule VikWeb.ShardLive do
 
   defp launch_compile_worker(shard) do
     Task.async(fn -> Thread.eval(shard) end)
+  end
+
+  @impl true
+  def terminate(_reason, socket) do
+    Authority.leave(socket.assigns.shard.slug)
   end
 
   # TODO(robin): disable deploy button during long compilations

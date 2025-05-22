@@ -9,17 +9,24 @@ defmodule Vik.Authority do
   use GenServer
   use TypedStruct
 
+  alias Vik.PubSub
+  alias Vik.Shard
+
   import Structo
 
   @type version :: non_neg_integer()
 
+  @derive {Jason.Encoder, only: [:version, :updates, :doc]}
   typedstruct module: Session do
     @moduledoc false
 
+    field :participants, pos_integer(), default: 1
     field :version, integer(), default: 0
     field :updates, [Update.t()], default: []
+    field :doc, String.t()
   end
 
+  @derive {Jason.Encoder, only: [:client_id, :changes]}
   typedstruct module: Update do
     @moduledoc """
     JSON payload consisting of changes to a CodeMirror document. 
@@ -62,14 +69,29 @@ defmodule Vik.Authority do
   Joins a collaboration session.
   """
   @spec join(suid()) :: :ok | {:error, term()}
-  def join(suid), do: subscribe(suid)
+  def join(suid) do
+    with :ok <- subscribe(suid) do
+      GenServer.cast(__MODULE__, {:join, suid})
+    end
+  end
+
+  @doc """
+  Leaves a collaboration session.
+
+  When empty, the collaboration session will
+  automatically close.
+  """
+  @spec leave(suid()) :: :ok
+  def leave(suid) do
+    GenServer.cast(__MODULE__, {:leave, suid})
+  end
 
   @doc """
   Pulls any changes made since `version`.
   """
-  @spec pull_changes(suid(), version()) :: [Update.t()]
-  def pull_changes(suid, version) do
-    GenServer.call(__MODULE__, {:pull_changes, suid, version})
+  @spec fetch_changes(suid(), version()) :: [Update.t()]
+  def fetch_changes(suid, version) do
+    GenServer.call(__MODULE__, {:fetch_changes, suid, version})
   end
 
   @doc """
@@ -88,8 +110,38 @@ defmodule Vik.Authority do
 
   @doc false
   @impl true
-  def handle_call({:pull_changes, suid, version}, _from, state) do
-    %Session{} = session = Map.get(state, suid, %Session{})
+  def handle_cast({:join, suid}, _from, state) do
+    %Shard{} = shard = Repo.get_by!(Shard, slug: suid)
+    %Session{} = new_session = initialise_session(shard)
+
+    {:noreply, Map.update(state, suid, new_session, &join_session/1)}
+  end
+
+  @doc false
+  @impl true
+  def handle_cast({:leave, suid}, _from, state) do
+    %Session{} = session = Map.fetch!(state, suid)
+
+    case leave_session(session) do
+      %Session{} = s when s.participants <= 0 ->
+        {:noreply, Map.delete(state, suid)}
+
+      %Session = updated_session ->
+        {:noreply, Map.put(state, suid, updated_session)}
+    end
+  end
+
+  @doc false
+  @impl true
+  def handle_cast({:get_document, suid}, _from, state) do
+    %Session{} = session = Map.fetch!(state, suid)
+    {:reply, session, state}
+  end
+
+  @doc false
+  @impl true
+  def handle_cast({:fetch_changes, suid, version}, _from, state) do
+    %Session{} = session = Map.fetch!(state, suid)
     behind = session.version - version
 
     {:reply, pending_changes(session, behind), state}
@@ -98,7 +150,7 @@ defmodule Vik.Authority do
   @doc false
   @impl true
   def handle_call({:push_changes, suid, version, updates}, _from, state) do
-    %Session{} = session = Map.get(state, suid, %Session{})
+    %Session{} = session = Map.fetch!(state, suid)
     
     if version != session.version do
       {:reply, :rejected, state}
@@ -107,10 +159,20 @@ defmodule Vik.Authority do
       state = Map.put(state, suid, session)
 
       # Notify other clients of the new updates.
-      broadcast(suid, updates)
+      broadcast(suid, {:collab, updates})
   
       {:reply, :ok, state}
     end
+  end
+
+  defp initialise_session(shard) do
+    %Session{doc: shard.source_code}
+  end
+  defp join_session(session) do
+    Map.update!(session, :participants, &(&1 + 1))
+  end
+  defp leave_session(session) do
+    Map.update!(session, :participants, &(&1 - 1))
   end
 
   defp pending_changes(_session, x) when x < 0, do: []
@@ -130,10 +192,10 @@ defmodule Vik.Authority do
   @topic "@collab/"
 
   defp subscribe(suid) when is_binary(suid) do
-    Vik.PubSub.subscribe(@topic <> suid)
+    PubSub.subscribe(@topic <> suid)
   end
 
   defp broadcast(suid, message) when is_binary(suid) do
-    Vik.PubSub.broadcast(@topic <> suid, message)
+    PubSub.broadcast(@topic <> suid, message)
   end
 end

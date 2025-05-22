@@ -14,6 +14,16 @@ function pushEventAsync(lv, event, payload) {
   });
 }
 
+function handleEventAsync(lv, event) {
+  return new Promise((resolve) => {
+    lv.handleEvent(event, resolve);
+  });
+}
+
+function getDocument(lv) {
+  return pushEventAsync(lv, "collab:doc");
+}
+
 function pushUpdates(lv, version, fullUpdates) {
   // Strip off transaction data
   const updates = fullUpdates.map((u) => ({
@@ -25,8 +35,8 @@ function pushUpdates(lv, version, fullUpdates) {
   return pushEventAsync(lv, "collab:push", { version, updates });
 }
 
-function pullUpdates(lv, version) {
-  return pushEventAsync(lv, "collab:pull", { version }).then((updates) =>
+function fetchUpdates(lv, version) {
+  return pushEventAsync(lv, "collab:fetch", { version }).then((updates) =>
     updates.map((u) => ({
       changes: ChangeSet.fromJSON(u.changes),
       clientID: u.clientID,
@@ -34,15 +44,26 @@ function pullUpdates(lv, version) {
   );
 }
 
-// async function createPeer(lv) {
-//   let { version, doc } = await getDocument(connection)
-//   let state = EditorState.create({
-//     doc,
-//     extensions: [basicSetup, peerExtension(version, lv)]
-//   });
+function pullUpdates(lv) {
+  return handleEventAsync(lv, "collab:pull").then((updates) => 
+    updates.map((u) => ({
+      changes: ChangeSet.fromJSON(u.changes),
+      clientID: u.clientID,
+    }))
+  );
+}
 
-//   return new EditorView({state})
-// }
+async function createPeer(lv) {
+  let { version, updates, doc } = await getDocument(lv);
+  for (let update of updates) doc = applyUpdate(doc, update);
+
+  let state = EditorState.create({
+    doc,
+    extensions: [basicSetup, peerExtension(version, lv)]
+  });
+
+  return new EditorView({state})
+}
 
 function peerExtension(startVersion, lv) {
   let plugin = ViewPlugin.fromClass(class {
@@ -74,9 +95,6 @@ function peerExtension(startVersion, lv) {
       while (!this.done) {
         let version = getSyncedVersion(this.view.state)
         let updates = await pullUpdates(lv, version)
-        // TODO(robin): in my implementation, this instantly returns, and
-        // instead, the liveview gets the updates pushed. we should handle
-        // that properly here.
         this.view.dispatch(receiveUpdates(this.view.state, updates))
       }
     }
