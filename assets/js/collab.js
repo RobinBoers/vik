@@ -73,8 +73,14 @@ function peerExtension(lv, startVersion) {
         if (this.pushing || !updates.length) return;
         this.pushing = true;
         let version = getSyncedVersion(this.view.state);
-        await pushUpdates(lv, version, updates);
+        const { status } = await pushUpdates(lv, version, updates);
+
+        if (status == "rejected") {
+          // TODO(robin): this is a gap in my implementation rn.
+        }
+
         this.pushing = false;
+
         // Regardless of whether the push failed or new updates came in
         // while it was running, try again if there's updates remaining
         if (sendableUpdates(this.view.state).length)
@@ -111,6 +117,8 @@ function peerExtension(lv, startVersion) {
 
 export async function createPeer(lv) {
   let { version, updates, doc } = await getDocument(lv);
+  // TODO(robin): updates seems to always be empty and this
+  // function i seem to have made up.
   for (let update of updates) doc = applyUpdate(doc, update);
 
   return { doc, collab: peerExtension(lv, version) };
