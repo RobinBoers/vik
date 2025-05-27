@@ -14,6 +14,7 @@ defmodule Vik.Application do
       Vik.PubSub,
       Vik.Logger,
       Vik.Thread,
+      Vik.Authority,
       VikWeb.Endpoint
     ]
 

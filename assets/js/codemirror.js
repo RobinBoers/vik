@@ -40,7 +40,7 @@ import { espresso } from "thememirror";
 import { createPeer } from "./collab";
 
 export const Hook = {
-  mounted() {
+  async mounted() {
     const textarea = this.el.querySelector("textarea");
     const target = this.el.querySelector(".target");
 
@@ -88,9 +88,9 @@ export const Hook = {
 
     // ughh, i don't like var but this is literally what var was
     // made to do; in this case i fucking want the bad behaviour.
-    if (this.el.hasAttribute("data-collaborative")) {
-      var { doc, collab } = createPeer(this);
-      extensions.push(collab);
+    if (this.el.hasAttribute("data-suid")) {
+      var { doc, collab } = await createPeer(this);
+      extensions.push.apply(extensions, collab);
     } else var doc = textarea.value;
 
     const editor = new EditorView({ parent: target, doc, extensions });

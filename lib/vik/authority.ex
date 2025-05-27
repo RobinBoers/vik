@@ -142,14 +142,14 @@ defmodule Vik.Authority do
 
   @doc false
   @impl true
-  def handle_cast({:get_document, suid}, state) do
+  def handle_call({:get_document, suid}, _from, state) do
     %Session{} = session = Map.fetch!(state, suid)
     {:reply, session, state}
   end
 
   @doc false
   @impl true
-  def handle_cast({:fetch_changes, suid, version}, state) do
+  def handle_call({:fetch_changes, suid, version}, _from, state) do
     %Session{} = session = Map.fetch!(state, suid)
     behind = session.version - version
 

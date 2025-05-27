@@ -170,7 +170,7 @@ defmodule VikWeb.ShardLive do
         }
       </style>
 
-      <.codemirror id="source-code" field={f[:source_code]} collaborative />
+      <.codemirror id="source-code" field={f[:source_code]} suid={@shard.slug} />
 
       <div id="sidebar" class="flex flex-col gap-4">
         <div class="flex items-center gap-2 -mb-1.5">

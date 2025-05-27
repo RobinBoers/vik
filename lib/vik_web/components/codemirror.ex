@@ -14,8 +14,7 @@ defmodule VikWeb.CodeMirror do
   attr :name, :string
   attr :value, :string
   attr :field, Phoenix.FormField
-  attr :suid, :string
-  attr :collaborative, :boolean
+  attr :suid, :string, default: nil
 
   attr :rest, :global
 
@@ -29,7 +28,7 @@ defmodule VikWeb.CodeMirror do
 
   def codemirror(assigns) do
     ~H"""
-    <%= if @collaborative do %>
+    <%= if @suid do %>
       <.live_component module={__MODULE__} {assigns} />
     <% else %>
       <.render {assigns} />
@@ -54,7 +53,9 @@ defmodule VikWeb.CodeMirror do
   @impl true
   def handle_event("collab:fetch", ~m{version}s, socket) do
     suid = socket.assigns.suid
-    {:reply, Authority.fetch_changes(suid, version), socket}
+    changes = Authority.fetch_changes(suid, version)
+
+    {:reply, ~m{changes}, socket}
   end
 
   @impl true
@@ -88,7 +89,7 @@ defmodule VikWeb.CodeMirror do
       id={"#{@id}-wrapper"}
       phx-hook="CodeMirror"
       class="codemirror"
-      data-collaborative={@collaborative}
+      data-suid={@suid}
     >
       <div
         id={"#{@id}-target"}
