@@ -11,14 +11,15 @@ defmodule Vik.Authority do
 
   alias Vik.PubSub
   alias Vik.Shard
+  alias Vik.Repo
 
   import Structo
 
   @type version :: non_neg_integer()
 
-  @derive {Jason.Encoder, only: [:version, :updates, :doc]}
   typedstruct module: Session do
     @moduledoc false
+    @derive {Jason.Encoder, only: [:version, :updates, :doc]}
 
     field :participants, pos_integer(), default: 1
     field :version, integer(), default: 0
@@ -26,7 +27,6 @@ defmodule Vik.Authority do
     field :doc, String.t()
   end
 
-  @derive {Jason.Encoder, only: [:client_id, :changes]}
   typedstruct module: Update do
     @moduledoc """
     JSON payload consisting of changes to a CodeMirror document. 
@@ -102,6 +102,15 @@ defmodule Vik.Authority do
     GenServer.call(__MODULE__, {:push_changes, suid, version, updates})
   end
 
+  @doc """
+  Returns the session with all relevant data for
+  constructing the current CodeMirror document.
+  """
+  @spec get_document(suid()) :: Session.t()
+  def get_document(suid) do
+    GenServer.call(__MODULE__, {:get_document, suid})
+  end
+
   @doc false
   @impl true
   def init(_opts) do
@@ -110,7 +119,7 @@ defmodule Vik.Authority do
 
   @doc false
   @impl true
-  def handle_cast({:join, suid}, _from, state) do
+  def handle_cast({:join, suid}, state) do
     %Shard{} = shard = Repo.get_by!(Shard, slug: suid)
     %Session{} = new_session = initialise_session(shard)
 
@@ -119,28 +128,28 @@ defmodule Vik.Authority do
 
   @doc false
   @impl true
-  def handle_cast({:leave, suid}, _from, state) do
+  def handle_cast({:leave, suid}, state) do
     %Session{} = session = Map.fetch!(state, suid)
 
     case leave_session(session) do
       %Session{} = s when s.participants <= 0 ->
         {:noreply, Map.delete(state, suid)}
 
-      %Session = updated_session ->
+      %Session{} = updated_session ->
         {:noreply, Map.put(state, suid, updated_session)}
     end
   end
 
   @doc false
   @impl true
-  def handle_cast({:get_document, suid}, _from, state) do
+  def handle_cast({:get_document, suid}, state) do
     %Session{} = session = Map.fetch!(state, suid)
     {:reply, session, state}
   end
 
   @doc false
   @impl true
-  def handle_cast({:fetch_changes, suid, version}, _from, state) do
+  def handle_cast({:fetch_changes, suid, version}, state) do
     %Session{} = session = Map.fetch!(state, suid)
     behind = session.version - version
 

@@ -13,11 +13,12 @@ defmodule VikWeb.ShardLive do
 
   import Ecto.Query
   import Structo
+
+  import VikWeb.CodeMirror, only: [codemirror: 1]
   import VikWeb.LogLive, only: [terminal: 1]
 
   require Logger
 
-  on_mount VikWeb.Collab
   on_mount {VikWeb.SystemHandler, :static}
 
   @impl true
@@ -119,9 +120,20 @@ defmodule VikWeb.ShardLive do
   end
 
   @impl true
+  def handle_info({:collab, updates}, socket) do
+    VikWeb.CodeMirror.sync("source-code", updates)
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_info({ref, _outcome}, socket) when socket.assigns.task.ref == ref do
     Process.demonitor(ref, [:flush])
     {:noreply, assign(socket, :task, nil)}
+  end
+
+  @impl true
+  def terminate(_reason, socket) do
+    Authority.leave(socket.assigns.shard.slug)
   end
 
   def save_shard(shard, params) do
@@ -132,11 +144,6 @@ defmodule VikWeb.ShardLive do
 
   defp launch_compile_worker(shard) do
     Task.async(fn -> Thread.eval(shard) end)
-  end
-
-  @impl true
-  def terminate(_reason, socket) do
-    Authority.leave(socket.assigns.shard.slug)
   end
 
   # TODO(robin): disable deploy button during long compilations
@@ -163,7 +170,7 @@ defmodule VikWeb.ShardLive do
         }
       </style>
 
-      <.codemirror id="source-code" field={f[:source_code]} />
+      <.codemirror id="source-code" field={f[:source_code]} collaborative />
 
       <div id="sidebar" class="flex flex-col gap-4">
         <div class="flex items-center gap-2 -mb-1.5">
@@ -226,43 +233,6 @@ defmodule VikWeb.ShardLive do
   def dot_color(:stale), do: "bg-amber-400/10 text-amber-400"
   def dot_color(:up), do: "bg-green-400/10 text-green-400"
   def dot_color(:down), do: "bg-red-400/10 text-red-400"
-
-  attr :id, :string
-  attr :name, :string
-  attr :value, :string
-  attr :field, Phoenix.FormField
-
-  attr :rest, :global
-
-  def codemirror(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
-    assigns
-    |> assign(field: nil, id: assigns.id || field.id)
-    |> assign_new(:name, fn -> field.name end)
-    |> assign_new(:value, fn -> field.value end)
-    |> codemirror()
-  end
-
-  def codemirror(assigns) do
-    ~H"""
-    <div
-      id={"#{@id}-wrapper"}
-      phx-hook="CodeMirror"
-      class="codemirror"
-    >
-      <div
-        id={"#{@id}-target"}
-        class="target"
-        phx-update="ignore"
-      ></div>
-      <textarea
-        id={@id}
-        name={@name}
-        data-update-ignore="hidden"
-        {@rest}
-      >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
-    </div>
-    """
-  end
 
   defp format_export(export) when is_atom(export) do
     to_string(export)

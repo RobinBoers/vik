@@ -1,5 +1,5 @@
-import { EditorView, ViewPlugin } from "@codemirror/view";
-import { Text, ChangeSet } from "@codemirror/state";
+import { ViewPlugin } from "@codemirror/view";
+import { ChangeSet } from "@codemirror/state";
 
 import {
   receiveUpdates,
@@ -53,24 +53,13 @@ function pullUpdates(lv) {
   );
 }
 
-async function createPeer(lv) {
-  let { version, updates, doc } = await getDocument(lv);
-  for (let update of updates) doc = applyUpdate(doc, update);
-
-  let state = EditorState.create({
-    doc,
-    extensions: [basicSetup, peerExtension(version, lv)]
-  });
-
-  return new EditorView({state})
-}
-
-function peerExtension(startVersion, lv) {
+function peerExtension(lv, startVersion) {
   let plugin = ViewPlugin.fromClass(class {
     constructor(view) {
       this.view = view;
       this.pushing = false;
       this.done = false;
+      this.fetch();
       this.pull();
     }
 
@@ -91,10 +80,20 @@ function peerExtension(startVersion, lv) {
         setTimeout(() => this.push(), 100)
     }
 
+    async fetch() {
+      if(!this.done) {
+        let updates = await fetchUpdates(lv, version)
+        this.view.dispatch(receiveUpdates(this.view.state, updates))
+
+        // Every 10 seconds, try to fetch any updates missed since
+        // the last pull.
+        setTimeout(() => this.fetch, 10_000);
+      }
+    }
+
     async pull() {
       while (!this.done) {
-        let version = getSyncedVersion(this.view.state)
-        let updates = await pullUpdates(lv, version)
+        let updates = await pullUpdates(lv)
         this.view.dispatch(receiveUpdates(this.view.state, updates))
       }
     }
@@ -103,4 +102,11 @@ function peerExtension(startVersion, lv) {
   })
 
   return [collab({startVersion}), plugin]
+}
+
+export async function createPeer(lv) {
+  let { version, updates, doc } = await getDocument(lv);
+  for (let update of updates) doc = applyUpdate(doc, update);
+
+  return { doc, collab: peerExtension(lv, version) };
 }
