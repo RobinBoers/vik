@@ -42,7 +42,7 @@ defmodule VikWeb.CodeMirror do
   
   @impl true
   def update(~m{updates}, socket) do
-    {:ok, push_event(socket, "collab:pull", updates)}
+    {:ok, push_event(socket, "collab:pull", %{changes: updates})}
   end
 
   @impl true
@@ -53,20 +53,14 @@ defmodule VikWeb.CodeMirror do
   @impl true
   def handle_event("collab:fetch", ~m{version}s, socket) do
     suid = socket.assigns.suid
-    changes = Authority.fetch_changes(suid, version)
-
-    {:reply, ~m{changes}, socket}
+    {:reply, %{changes: Authority.fetch_changes(suid, version)}, socket}
   end
 
   @impl true
   def handle_event("collab:push", ~m{version, updates}s, socket) do
     suid = socket.assigns.suid
     updates = deserialize_changes(updates)
-  
-    case Authority.push_changes(suid, version, updates) do
-      :ok -> {:reply, true, socket}
-      :rejected -> {:reply, false, socket}
-    end
+    {:reply, %{status: Authority.push_changes(suid, version, updates)}, socket}
   end
 
   @impl true
