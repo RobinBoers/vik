@@ -143,8 +143,7 @@ defmodule Vik.Authority do
   @doc false
   @impl true
   def handle_call({:get_document, suid}, _from, state) do
-    %Session{} = session = Map.fetch!(state, suid)
-    {:reply, session, state}
+    {:reply, state |> Map.fetch!(suid) |> Map.update!(:updates, &Enum.reverse/1), state}
   end
 
   @doc false
@@ -190,10 +189,9 @@ defmodule Vik.Authority do
   end
 
   defp append_changes(session, new) do
-    version = session.version + Enum.count(new)
-    updates = Enum.reverse(new) ++ session.updates
-
-    ~m{:Session, version, updates}
+    session
+    |> Map.put(:version, session.version + Enum.count(new))
+    |> Map.put(:updates, Enum.reverse(new) ++ session.updates)
   end
 
   # PubSub helpers

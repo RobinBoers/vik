@@ -1,5 +1,5 @@
 import { ViewPlugin } from "@codemirror/view";
-import { ChangeSet } from "@codemirror/state";
+import { Text, ChangeSet } from "@codemirror/state";
 
 import {
   receiveUpdates,
@@ -21,7 +21,8 @@ function handleEventAsync(lv, event) {
 }
 
 function getDocument(lv) {
-  return pushEventAsync(lv, "collab:doc");
+  return pushEventAsync(lv, "collab:doc")
+    .then((d) => ({ ...d, doc: Text.of(d.doc.split("\n")) }));
 }
 
 function pushUpdates(lv, version, fullUpdates) {
@@ -117,9 +118,13 @@ function peerExtension(lv, startVersion) {
 
 export async function createPeer(lv) {
   let { version, updates, doc } = await getDocument(lv);
-  // TODO(robin): updates seems to always be empty and this
-  // function i seem to have made up.
-  for (let update of updates) doc = applyUpdate(doc, update);
 
-  return { doc, collab: peerExtension(lv, version) };
+  return {
+    doc: updates.reduce(applyUpdate, doc),
+    collab: peerExtension(lv, version),
+  };
+}
+
+function applyUpdate(doc, update) {
+  return ChangeSet.fromJSON(update.changes).apply(doc);
 }
