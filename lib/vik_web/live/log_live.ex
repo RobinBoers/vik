@@ -24,13 +24,13 @@ defmodule VikWeb.LogLive do
   end
 
   @impl true
-  def handle_event("keydown", %{"ctrl" => true, "key" => "k"}, socket) do
+  def handle_event("shortcut", %{"ctrl" => true, "key" => "k"}, socket) do
     Logger.clear()
     {:noreply, stream(socket, :logs, [], reset: true)}
   end
 
   @impl true
-  def handle_event("keydown", _, socket) do
+  def handle_event("shortcut", _, socket) do
     {:noreply, socket}
   end
 
