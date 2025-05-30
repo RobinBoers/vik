@@ -158,7 +158,6 @@ defmodule VikWeb.ShardLive do
       :let={f}
       id="shard"
       for={@changeset}
-      class="nologs"
       phx-submit={JS.push("submit", page_loading: true)}
       phx-hook="SlowSubmit"
     >
