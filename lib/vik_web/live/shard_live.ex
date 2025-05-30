@@ -2,6 +2,8 @@ defmodule VikWeb.ShardLive do
   @moduledoc false
   use VikWeb, :live_view
 
+  alias Vik.Authority
+  alias Vik.Presence
   alias Vik.Repo
   alias Vik.Store
   alias Vik.Shard
@@ -12,6 +14,8 @@ defmodule VikWeb.ShardLive do
 
   import Ecto.Query
   import Structo
+
+  import VikWeb.CodeMirror, only: [codemirror: 1]
   import VikWeb.LogLive, only: [terminal: 1]
 
   require Logger
@@ -27,14 +31,22 @@ defmodule VikWeb.ShardLive do
   end
 
   defp mount_shard(socket, shard) do
-    PubSub.subscribe(shard.slug)
+    uid = "#{socket.id}-collab"
+    participants = Presence.list_participants(shard.slug)
+
+    if connected?(socket) do
+      Authority.join(shard.slug, uid)
+      Presence.subscribe(shard.slug)
+      PubSub.subscribe(shard.slug)
+    end
 
     socket
     |> assign(:task, nil)
     |> assign(:status, Store.status(shard))
-    |> stream_lines(:logs)
+    |> stream(:participants, participants)
     |> assign_compiled(shard)
     |> assign_changeset(shard)
+    |> stream_lines(:logs)
   end
 
   defp assign_compiled(socket, shard) do
@@ -116,9 +128,31 @@ defmodule VikWeb.ShardLive do
   end
 
   @impl true
+  def handle_info({:collab, updates}, socket) do
+    VikWeb.CodeMirror.sync("source-code", updates)
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_info({ref, _outcome}, socket) when socket.assigns.task.ref == ref do
     Process.demonitor(ref, [:flush])
     {:noreply, assign(socket, :task, nil)}
+  end
+
+  @impl true
+  def handle_info({:join, suid, presence}, socket)
+    when socket.assigns.shard.slug == suid do
+    {:noreply, stream_insert(socket, :participants, presence)}
+  end
+
+  @impl true
+  def handle_info({:leave, suid, presence}, socket)
+    when socket.assigns.shard.slug == suid do
+    if presence.metas == [] do
+      {:noreply, stream_delete(socket, :participants, presence)}
+    else
+      {:noreply, stream_insert(socket, :participants, presence)}
+    end
   end
 
   def save_shard(shard, params) do
@@ -154,7 +188,7 @@ defmodule VikWeb.ShardLive do
         }
       </style>
 
-      <.codemirror id="source-code" field={f[:source_code]} />
+      <.codemirror id="source-code" field={f[:source_code]} suid={@shard.slug} />
 
       <div id="sidebar" class="flex flex-col gap-4">
         <div class="flex items-center gap-2 -mb-1.5">
@@ -207,6 +241,15 @@ defmodule VikWeb.ShardLive do
             </li>
           </ul>
         </div>
+
+        <div>
+          <h3 class="font-semibold text-lg mb-1">Collaboration session</h3>
+          <ul id="participants" phx-update="stream">
+            <li :for={{dom_id, p} <- @streams.participants} id={dom_id}>
+              {p.name} <small :if={length(p.metas) > 1}>({length(p.metas)})</small>
+            </li>
+          </ul>
+        </div>
       </div>
 
       <.terminal id="logs" lines={@streams.logs} scroll />
@@ -217,43 +260,6 @@ defmodule VikWeb.ShardLive do
   def dot_color(:stale), do: "bg-amber-400/10 text-amber-400"
   def dot_color(:up), do: "bg-green-400/10 text-green-400"
   def dot_color(:down), do: "bg-red-400/10 text-red-400"
-
-  attr :id, :string
-  attr :name, :string
-  attr :value, :string
-  attr :field, Phoenix.FormField
-
-  attr :rest, :global
-
-  def codemirror(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
-    assigns
-    |> assign(field: nil, id: assigns.id || field.id)
-    |> assign_new(:name, fn -> field.name end)
-    |> assign_new(:value, fn -> field.value end)
-    |> codemirror()
-  end
-
-  def codemirror(assigns) do
-    ~H"""
-    <div
-      id={"#{@id}-wrapper"}
-      phx-hook="CodeMirror"
-      class="codemirror"
-    >
-      <div
-        id={"#{@id}-target"}
-        class="target"
-        phx-update="ignore"
-      ></div>
-      <textarea
-        id={@id}
-        name={@name}
-        data-update-ignore="hidden"
-        {@rest}
-      >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
-    </div>
-    """
-  end
 
   defp format_export(export) when is_atom(export) do
     to_string(export)

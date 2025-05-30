@@ -29,6 +29,14 @@
     grid-area: logs;
   }
 
+  #shard.nologs {
+    grid-template-areas: "editor sidebar";
+    grid-template-rows: 1fr;
+  }
+  #shard.nologs #logs {
+    display: none;
+  }
+
   .codemirror {
     flex: 1;
     width: 100%;

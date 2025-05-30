@@ -75,13 +75,13 @@ defmodule Vik.Store do
     use GenServer
 
     @spec start_link(Enum.t()) :: :ok
-    def start_link(state) do
-      GenServer.start_link(__MODULE__, Map.new(state), name: __MODULE__)
+    def start_link(opts) do
+      GenServer.start_link(__MODULE__, opts, name: __MODULE__)
     end
 
     @impl true
-    def init(state) do
-      {:ok, state}
+    def init(opts) do
+      {:ok, Map.new(opts)}
     end
 
     @impl true

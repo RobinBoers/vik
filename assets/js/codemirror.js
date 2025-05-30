@@ -19,11 +19,9 @@ import {
 
 import {
   autocompletion,
-  startCompletion,
   completionKeymap,
   closeBrackets,
   closeBracketsKeymap,
-  acceptCompletion,
 } from "@codemirror/autocomplete";
 
 import {
@@ -39,8 +37,10 @@ import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { elixir } from "codemirror-lang-elixir";
 import { espresso } from "thememirror";
 
+import { createPeer } from "./collab";
+
 export const Hook = {
-  mounted() {
+  async mounted() {
     const textarea = this.el.querySelector("textarea");
     const target = this.el.querySelector(".target");
 
@@ -49,7 +49,7 @@ export const Hook = {
     const submitFormWith = (action) => {
       textarea.form.querySelector(`[value=${action}]`).click();
       return true;
-    }
+    };
 
     const saveShard = () => submitFormWith("save");
     const deployShard = () => submitFormWith("deploy");
@@ -64,31 +64,36 @@ export const Hook = {
       ...historyKeymap,
       ...completionKeymap,
       ...lintKeymap,
-      indentWithTab
+      indentWithTab,
     ];
 
-    const editor = new EditorView({
-      parent: target,
-      doc: textarea.value,
-      extensions: [
-        highlightSpecialChars(),
-        history(),
-        drawSelection(),
-        syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-        EditorState.allowMultipleSelections.of(true),
-        dropCursor(),
-        indentOnInput(),
-        bracketMatching(),
-        closeBrackets(),
-        autocompletion(),
-        rectangularSelection(),
-        crosshairCursor(),
-        highlightSelectionMatches(),
-        keymap.of(keymapping),
-        elixir(),
-        espresso,
-      ],
-    });
+    const extensions = [
+      highlightSpecialChars(),
+      history(),
+      drawSelection(),
+      syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+      EditorState.allowMultipleSelections.of(true),
+      dropCursor(),
+      indentOnInput(),
+      bracketMatching(),
+      closeBrackets(),
+      autocompletion(),
+      rectangularSelection(),
+      crosshairCursor(),
+      highlightSelectionMatches(),
+      keymap.of(keymapping),
+      elixir(),
+      espresso,
+    ];
+
+    // ughh, i don't like var but this is literally what var was
+    // made to do; in this case i fucking want the bad behaviour.
+    if (this.el.hasAttribute("data-suid")) {
+      var { doc, collab } = await createPeer(this);
+      extensions.push.apply(extensions, collab);
+    } else var doc = textarea.value;
+
+    const editor = new EditorView({ parent: target, doc, extensions });
 
     textarea.form.onsubmit = () => {
       textarea.value = editor.state.doc.toString();
