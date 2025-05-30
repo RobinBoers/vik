@@ -189,7 +189,12 @@ defmodule VikWeb.ShardLive do
         }
       </style>
 
-      <.codemirror id="source-code" field={f[:source_code]} suid={@shard.slug} />
+      <.codemirror
+        id="source-code"
+        field={f[:source_code]}
+        suid={@shard.slug}
+        uid={@current_user}
+      />
 
       <div id="sidebar" class="flex flex-col gap-4">
         <div class="flex items-center gap-2 -mb-1.5">

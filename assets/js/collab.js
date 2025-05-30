@@ -1,5 +1,6 @@
 import { ViewPlugin } from "@codemirror/view";
 import { Text, ChangeSet } from "@codemirror/state";
+import { addCursor, sharedEffects } from "./cursors";
 
 import {
   receiveUpdates,
@@ -21,8 +22,10 @@ function handleEventAsync(lv, event) {
 }
 
 function getDocument(lv) {
-  return pushEventAsync(lv, "collab:doc")
-    .then((d) => ({ ...d, doc: Text.of(d.doc.split("\n")) }));
+  return pushEventAsync(lv, "collab:doc").then((d) => ({
+    ...d,
+    doc: Text.of(d.doc.split("\n")),
+  }));
 }
 
 function pushUpdates(lv, version, fullUpdates) {
@@ -41,6 +44,7 @@ function fetchUpdates(lv, version) {
     data.changes.map((u) => ({
       changes: ChangeSet.fromJSON(u.changes),
       clientID: u.clientID,
+      effects: effectsFromJSON(u.effects),
     }))
   );
 }
@@ -50,11 +54,28 @@ function pullUpdates(lv) {
     data.changes.map((u) => ({
       changes: ChangeSet.fromJSON(u.changes),
       clientID: u.clientID,
+      effects: effectsFromJSON(u.effects),
     }))
   );
 }
 
-function peerExtension(lv, startVersion) {
+function effectsFromJSON(effects) {
+  if (!effects[0]) return [];
+
+  return effects.map((effect) => {
+    if (effect.value?.id && effect.value?.from) {
+      return addCursor.of({
+        id: effect.value.id,
+        from: effect.value.from,
+        to: effect.value.to,
+      });
+    } else {
+      return removeCursor.of(effect.value?.id);
+    }
+  });
+}
+
+function peerExtension(lv, startVersion, uid) {
   let plugin = ViewPlugin.fromClass(
     class {
       constructor(view) {
@@ -66,7 +87,7 @@ function peerExtension(lv, startVersion) {
       }
 
       update(update) {
-        if (update.docChanged) this.push();
+        if (update.docChanged || update.transactions.length) this.push();
       }
 
       async push() {
@@ -113,15 +134,15 @@ function peerExtension(lv, startVersion) {
     }
   );
 
-  return [collab({ startVersion }), plugin];
+  return [collab({ startVersion, sharedEffects }), plugin];
 }
 
-export async function createPeer(lv) {
+export async function createPeer(lv, uid) {
   let { version, updates, doc } = await getDocument(lv);
 
   return {
     doc: updates.reduce(applyUpdate, doc),
-    collab: peerExtension(lv, version),
+    collab: peerExtension(lv, version, uid),
   };
 }
 

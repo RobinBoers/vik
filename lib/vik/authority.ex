@@ -40,10 +40,15 @@ defmodule Vik.Authority do
 
     field :client_id, String.t()
     field :changes, [term()]
+    field :effects, [term()]
 
     defimpl Jason.Encoder do
-      def encode(%{client_id: cid, changes: changes}, opts) do
-        Jason.Encode.map(%{"clientID" => cid, "changes" => changes}, opts)
+      def encode(%{client_id: cid} = d, opts) do
+        Jason.Encode.map(%{
+          "clientID" => cid,
+          "changes" => d.changes,
+          "effects" => d.effects
+        }, opts)
       end
     end
   end

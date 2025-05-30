@@ -15,6 +15,7 @@ defmodule VikWeb.CodeMirror do
   attr :value, :string
   attr :field, Phoenix.FormField
   attr :suid, :string, default: nil
+  attr :uid, :string, default: nil
 
   attr :rest, :global
 
@@ -72,7 +73,8 @@ defmodule VikWeb.CodeMirror do
   defp deserialize_changes(updates) do
     Enum.map(updates, &%Update{
       client_id: &1["clientID"],
-      changes: &1["changes"]
+      changes: &1["changes"],
+      effects: &1["effects"]
     })
   end
 
@@ -84,6 +86,7 @@ defmodule VikWeb.CodeMirror do
       phx-hook="CodeMirror"
       class="codemirror"
       data-suid={@suid}
+      data-uid={@uid}
     >
       <div
         id={"#{@id}-target"}

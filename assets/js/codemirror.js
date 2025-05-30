@@ -38,6 +38,7 @@ import { elixir } from "codemirror-lang-elixir";
 import { espresso } from "thememirror";
 
 import { createPeer } from "./collab";
+import { cursorExtension } from "./cursors";
 
 export const Hook = {
   async mounted() {
@@ -89,8 +90,11 @@ export const Hook = {
     // ughh, i don't like var but this is literally what var was
     // made to do; in this case i fucking want the bad behaviour.
     if (this.el.hasAttribute("data-suid")) {
-      var { doc, collab } = await createPeer(this);
+      const uid = this.el.dataset.uid || "Anonymous";
+      var { doc, collab } = await createPeer(this, uid);
+
       extensions.push.apply(extensions, collab);
+      extensions.push(cursorExtension(uid));
     } else var doc = textarea.value;
 
     const editor = new EditorView({ parent: target, doc, extensions });
