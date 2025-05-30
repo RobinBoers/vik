@@ -20,6 +20,7 @@ defmodule VikWeb.ShardLive do
 
   require Logger
 
+  on_mount VikWeb.Auth
   on_mount {VikWeb.SystemHandler, :static}
 
   @impl true
@@ -31,7 +32,7 @@ defmodule VikWeb.ShardLive do
   end
 
   defp mount_shard(socket, shard) do
-    uid = "#{socket.id}-collab"
+    uid = socket.assigns.current_user # or: "#{socket.id}-collab"
     participants = Presence.list_participants(shard.slug)
 
     if connected?(socket) do
