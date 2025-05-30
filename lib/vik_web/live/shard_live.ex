@@ -247,7 +247,7 @@ defmodule VikWeb.ShardLive do
           <h3 class="font-semibold text-lg mb-1">Collaboration session</h3>
           <ul id="participants" phx-update="stream">
             <li :for={{dom_id, p} <- @streams.participants} id={dom_id}>
-              {p.name} ({length(p.metas)})
+              {p.name} <small :if={length(p.metas) > 1}>({length(p.metas)})</small>
             </li>
           </ul>
         </div>
