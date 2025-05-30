@@ -209,8 +209,12 @@ defmodule Vik.Authority do
   def handle_info(%{event: "presence_diff", topic: @topic <> suid}, state) do
     case count_participants(suid) do
       n when n == 0 ->
-        Logger.info("Session #{suid} is empty; cleaning up.")
-      {:noreply, Map.delete(state, suid)}
+        Logger.info("Session '#{suid}' is empty; cleaning up.")
+
+        # Stop receiving PubSub messages now please :3
+        :ok = unsubscribe(suid)
+
+        {:noreply, Map.delete(state, suid)}
 
       n when n >= 1 ->
         Logger.info("#{n} participants left in session '#{suid}'.")
@@ -233,6 +237,10 @@ defmodule Vik.Authority do
 
   defp subscribe(suid) when is_binary(suid) do
     PubSub.subscribe(@topic <> suid)
+  end
+
+  defp unsubscribe(suid) when is_binary(suid) do
+    PubSub.unsubscribe(@topic <> suid)
   end
 
   defp broadcast(suid, message) when is_binary(suid) do
