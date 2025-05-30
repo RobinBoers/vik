@@ -39,55 +39,62 @@ export const sharedEffects = (tr) => tr.effects.filter((e) => e.is(addCursor));
 
 let cursorsItems = new Map();
 
-const cursorField = StateField.define({
-  create() {
-    return Decoration.none;
-  },
-  update(cursors, tr) {
-    let cursorTransacions = cursors.map(tr.changes);
-    for (let e of tr.effects)
-      if (e.is(addCursor)) {
-        let addUpdates = [];
-        if (!cursorsItems.has(e.value.id))
-          cursorsItems.set(e.value.id, cursorsItems.size);
+const cursorField = (uid) =>
+  StateField.define({
+    create() {
+      return Decoration.none;
+    },
+    update(cursors, tr) {
+      let cursorTransacions = cursors.map(tr.changes);
+      for (let e of tr.effects) {
+        if (e.value?.id == uid) continue;
 
-        if (e.value.from != e.value.to) {
+        if (e.is(addCursor)) {
+          let addUpdates = [];
+          if (!cursorsItems.has(e.value.id))
+            cursorsItems.set(e.value.id, cursorsItems.size);
+
+          if (e.value.from != e.value.to) {
+            addUpdates.push(
+              Decoration.mark({
+                class: `cm-highlight-${(cursorsItems.get(e.value.id) % 8) + 1}`,
+                id: e.value.id,
+              }).range(e.value.from, e.value.to)
+            );
+          }
+
           addUpdates.push(
-            Decoration.mark({
-              class: `cm-highlight-${(cursorsItems.get(e.value.id) % 8) + 1}`,
+            Decoration.widget({
+              widget: new TooltipWidget(
+                e.value.id,
+                cursorsItems.get(e.value.id)
+              ),
+              block: false,
               id: e.value.id,
-            }).range(e.value.from, e.value.to)
+            }).range(e.value.to, e.value.to)
           );
+
+          cursorTransacions = cursorTransacions.update({
+            add: addUpdates,
+            filter: (from, to, value) => {
+              if (value?.spec?.id == e.value.id) return false;
+              return true;
+            },
+          });
+        } else if (e.is(removeCursor)) {
+          cursorTransacions = cursorTransacions.update({
+            filter: (from, to, value) => {
+              if (value?.spec?.id == e.value.id) return false;
+              return true;
+            },
+          });
         }
-
-        addUpdates.push(
-          Decoration.widget({
-            widget: new TooltipWidget(e.value.id, cursorsItems.get(e.value.id)),
-            block: false,
-            id: e.value.id,
-          }).range(e.value.to, e.value.to)
-        );
-
-        cursorTransacions = cursorTransacions.update({
-          add: addUpdates,
-          filter: (from, to, value) => {
-            if (value?.spec?.id == e.value.id) return false;
-            return true;
-          },
-        });
-      } else if (e.is(removeCursor)) {
-        cursorTransacions = cursorTransacions.update({
-          filter: (from, to, value) => {
-            if (value?.spec?.id == e.value.id) return false;
-            return true;
-          },
-        });
       }
 
-    return cursorTransacions;
-  },
-  provide: (f) => EditorView.decorations.from(f),
-});
+      return cursorTransacions;
+    },
+    provide: (f) => EditorView.decorations.from(f),
+  });
 
 const cursorBaseTheme = EditorView.baseTheme({
   ".cm-tooltip.cm-tooltip-cursor": {
@@ -96,7 +103,7 @@ const cursorBaseTheme = EditorView.baseTheme({
     padding: "2px 7px",
     borderRadius: "4px",
     position: "absolute",
-    marginTop: "-40px",
+    marginTop: "-50px",
     marginLeft: "-14px",
     "& .cm-tooltip-arrow:after": {
       borderTopColor: "transparent",
@@ -197,5 +204,5 @@ export function cursorExtension(uid) {
     });
   });
 
-  return [cursorField, cursorBaseTheme, plugin];
+  return [cursorField(uid), cursorBaseTheme, plugin];
 }
