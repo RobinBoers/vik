@@ -3,6 +3,7 @@ defmodule VikWeb.ShardLive do
   use VikWeb, :live_view
 
   alias Vik.Authority
+  alias Vik.Presence
   alias Vik.Repo
   alias Vik.Store
   alias Vik.Shard
@@ -30,14 +31,19 @@ defmodule VikWeb.ShardLive do
   end
 
   defp mount_shard(socket, shard) do
+    uid = "#{socket.id}-collab"
+    participants = Presence.list_participants(shard.slug)
+
     if connected?(socket) do
-      Authority.join(shard.slug, socket.id)
+      Authority.join(shard.slug, uid)
+      Presence.subscribe(shard.slug)
       PubSub.subscribe(shard.slug)
     end
 
     socket
     |> assign(:task, nil)
     |> assign(:status, Store.status(shard))
+    |> stream(:participants, participants)
     |> assign_compiled(shard)
     |> assign_changeset(shard)
     |> stream_lines(:logs)
@@ -134,9 +140,19 @@ defmodule VikWeb.ShardLive do
   end
 
   @impl true
-  def handle_info(message, socket) do
-    Logger.debug("Unhandled event: #{inspect(message)}")
-    {:noreply, socket}
+  def handle_info({:join, suid, presence}, socket)
+    when socket.assigns.shard.slug == suid do
+    {:noreply, stream_insert(socket, :participants, presence)}
+  end
+
+  @impl true
+  def handle_info({:leave, suid, presence}, socket)
+    when socket.assigns.shard.slug == suid do
+    if presence.metas == [] do
+      {:noreply, stream_delete(socket, :participants, presence)}
+    else
+      {:noreply, stream_insert(socket, :participants, presence)}
+    end
   end
 
   def save_shard(shard, params) do
@@ -223,6 +239,15 @@ defmodule VikWeb.ShardLive do
               <.link navigate={~p"/#{shard.slug}"}>
                 {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
               </.link>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-lg mb-1">Collaboration session</h3>
+          <ul id="participants" phx-update="stream">
+            <li :for={{dom_id, p} <- @streams.participants} id={dom_id}>
+              {p.name} ({length(p.metas)})
             </li>
           </ul>
         </div>

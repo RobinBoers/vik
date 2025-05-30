@@ -14,8 +14,6 @@ defmodule Vik.Authority do
   alias Vik.Shard
   alias Vik.Repo
 
-  @topic "@collab/"
-
   require Logger
 
   @type version :: non_neg_integer()
@@ -82,7 +80,8 @@ defmodule Vik.Authority do
   """
   @spec join(suid(), uid()) :: :ok | {:error, term()}
   def join(suid, uid) do
-    with :ok <- subscribe(suid), :ok <- track(uid, suid) do
+    with {:ok, _} <- track(uid, suid),
+         :ok <- subscribe(suid) do
       GenServer.cast(__MODULE__, {:join, suid})
     end
   end
@@ -112,22 +111,6 @@ defmodule Vik.Authority do
     GenServer.call(__MODULE__, {:get_document, suid})
   end
 
-  @doc """
-  Returns a list of all active participants in a session.
-  """
-  @spec list_participants(suid()) :: map()
-  def list_participants(suid) when is_binary(suid) do
-    @topic <> suid |> Presence.list()
-  end
-
-  @doc """
-  Counts the amount of active participants in a session.
-  """
-  @spec count_participants(suid()) :: non_neg_integer()
-  def count_participants(suid) do
-    suid |> list_participants() |> map_size()
-  end
-
   @doc false
   @impl true
   def init(_opts) do
@@ -141,8 +124,7 @@ defmodule Vik.Authority do
     %Session{} = session = initialise_session(shard)
 
     if not Map.has_key?(state, suid) do
-      # Needed to track session leaves to eventually clean up.
-      :ok = subscribe(suid)
+      :ok = Presence.subscribe(suid)
     end
 
     {:noreply, Map.put_new(state, suid, session)}
@@ -206,13 +188,19 @@ defmodule Vik.Authority do
   # Message handling for destroying empty sessions
 
   @impl true
-  def handle_info(%{event: "presence_diff", topic: @topic <> suid}, state) do
-    case count_participants(suid) do
+  def handle_info({:join, suid, _}, state) do
+    Logger.info("#{Presence.count_participants(suid)} participants in session '#{suid}'.")
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:leave, suid, _}, state) do
+    case Presence.count_participants(suid) do
       n when n == 0 ->
         Logger.info("Session '#{suid}' is empty; cleaning up.")
 
         # Stop receiving PubSub messages now please :3
-        :ok = unsubscribe(suid)
+        :ok = Presence.unsubscribe(suid)
 
         {:noreply, Map.delete(state, suid)}
 
@@ -222,28 +210,26 @@ defmodule Vik.Authority do
     end
   end
 
-  @impl true
-  def handle_info(message, state) do
-    Logger.debug("Unhandled event: #{inspect(message)}")
-    {:noreply, state}
-  end
+  # PubSub helpers
 
-  # PubSub & Presence helpers
-
-  defp track(uid, suid) when is_binary(uid) do
-    with {:ok, _} <-
-      Presence.track(self(), @topic <> suid, uid, %{}), do: :ok
-  end
+  @topic "@collab/"
 
   defp subscribe(suid) when is_binary(suid) do
     PubSub.subscribe(@topic <> suid)
   end
 
-  defp unsubscribe(suid) when is_binary(suid) do
-    PubSub.unsubscribe(@topic <> suid)
-  end
-
   defp broadcast(suid, message) when is_binary(suid) do
     PubSub.broadcast(@topic <> suid, message)
+  end
+
+  # Presence helpers
+
+  @topic "@collab:pr/"
+
+  @doc false
+  def topic, do: @topic # Shared with Vik.Presence.
+
+  defp track(uid, suid, meta \\ %{}) when is_binary(uid) do
+    Presence.track(self(), @topic <> suid, uid, meta)
   end
 end
