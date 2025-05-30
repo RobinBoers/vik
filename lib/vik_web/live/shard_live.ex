@@ -245,9 +245,13 @@ defmodule VikWeb.ShardLive do
 
         <div>
           <h3 class="font-semibold text-lg mb-1">Collaboration session</h3>
-          <ul id="participants" phx-update="stream">
-            <li :for={{dom_id, p} <- @streams.participants} id={dom_id}>
-              {p.name} <small :if={length(p.metas) > 1}>({length(p.metas)})</small>
+          <ul id="participants" phx-update="stream" class="flex items-center gap-1">
+            <li :for={{dom_id, p} <- @streams.participants} id={dom_id} title={p.name}>
+              <span class={"inline-flex size-10 items-center justify-center rounded-full #{random_color(p.id)}"}>
+                <span class="font-medium text-white cursor-default">
+                  {initials(p.name)}<small :if={length(p.metas) > 1} class="text-[10px]">+{length(p.metas) - 1}</small>
+                </span>
+              </span>
             </li>
           </ul>
         </div>
@@ -256,6 +260,34 @@ defmodule VikWeb.ShardLive do
       <.terminal id="logs" lines={@streams.logs} scroll />
     </.form>
     """
+  end
+
+  @colors [
+    "bg-amber-500",
+    "bg-teal-500",
+    "bg-cyan-600",
+    "bg-indigo-400",
+    "bg-violet-500",
+    "bg-red-400",
+    "bg-pink-400",
+    "bg-rose-400",
+  ]
+
+  defp random_color(uid) do
+    Enum.at(@colors, :erlang.phash2(uid, length(@colors)))
+  end
+
+  defp initials(name) when name in ["", nil] do
+    "#"
+  end
+
+  defp initials(name) do
+    name
+    |> String.split()
+    |> Enum.take(2)
+    |> Enum.map(&String.first/1)
+    |> Enum.join()
+    |> String.upcase()
   end
 
   def dot_color(:stale), do: "bg-amber-400/10 text-amber-400"
