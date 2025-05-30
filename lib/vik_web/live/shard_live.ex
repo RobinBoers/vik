@@ -30,8 +30,10 @@ defmodule VikWeb.ShardLive do
   end
 
   defp mount_shard(socket, shard) do
-    Authority.join(shard.slug)
-    PubSub.subscribe(shard.slug)
+    if connected?(socket) do
+      Authority.join(shard.slug, socket.id)
+      PubSub.subscribe(shard.slug)
+    end
 
     socket
     |> assign(:task, nil)
@@ -132,8 +134,9 @@ defmodule VikWeb.ShardLive do
   end
 
   @impl true
-  def terminate(_reason, socket) do
-    Authority.leave(socket.assigns.shard.slug)
+  def handle_info(message, socket) do
+    Logger.debug("Unhandled event: #{inspect(message)}")
+    {:noreply, socket}
   end
 
   def save_shard(shard, params) do
@@ -155,6 +158,7 @@ defmodule VikWeb.ShardLive do
       :let={f}
       id="shard"
       for={@changeset}
+      class="nologs"
       phx-submit={JS.push("submit", page_loading: true)}
       phx-hook="SlowSubmit"
     >

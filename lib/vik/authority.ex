@@ -10,10 +10,13 @@ defmodule Vik.Authority do
   use TypedStruct
 
   alias Vik.PubSub
+  alias Vik.Presence
   alias Vik.Shard
   alias Vik.Repo
 
-  import Structo
+  @topic "@collab/"
+
+  require Logger
 
   @type version :: non_neg_integer()
 
@@ -65,31 +68,29 @@ defmodule Vik.Authority do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
+  @typedoc """
+  User identifiers uniquely identify every participant in
+  a collaborative session.
+  """
+  @type uid :: term()
+
   @doc """
   Joins a collaboration session.
+
+  If not initialised yet, this will create a new session.
+  When empty, the collaboration session will automatically close.
   """
-  @spec join(suid()) :: :ok | {:error, term()}
-  def join(suid) do
-    with :ok <- subscribe(suid) do
+  @spec join(suid(), uid()) :: :ok | {:error, term()}
+  def join(suid, uid) do
+    with :ok <- subscribe(suid), :ok <- track(uid, suid) do
       GenServer.cast(__MODULE__, {:join, suid})
     end
   end
 
   @doc """
-  Leaves a collaboration session.
-
-  When empty, the collaboration session will
-  automatically close.
-  """
-  @spec leave(suid()) :: :ok
-  def leave(suid) do
-    GenServer.cast(__MODULE__, {:leave, suid})
-  end
-
-  @doc """
   Pulls any changes made since `version`.
   """
-  @spec fetch_changes(suid(), version()) :: [Update.t()]
+  @spec fetch_changes(suid(), version()) :: [Update.t()] | :error
   def fetch_changes(suid, version) do
     GenServer.call(__MODULE__, {:fetch_changes, suid, version})
   end
@@ -106,9 +107,25 @@ defmodule Vik.Authority do
   Returns the session with all relevant data for
   constructing the current CodeMirror document.
   """
-  @spec get_document(suid()) :: Session.t()
+  @spec get_document(suid()) :: Session.t() | :error
   def get_document(suid) do
     GenServer.call(__MODULE__, {:get_document, suid})
+  end
+
+  @doc """
+  Returns a list of all active participants in a session.
+  """
+  @spec list_participants(suid()) :: map()
+  def list_participants(suid) when is_binary(suid) do
+    @topic <> suid |> Presence.list()
+  end
+
+  @doc """
+  Counts the amount of active participants in a session.
+  """
+  @spec count_participants(suid()) :: non_neg_integer()
+  def count_participants(suid) do
+    suid |> list_participants() |> map_size()
   end
 
   @doc false
@@ -121,38 +138,36 @@ defmodule Vik.Authority do
   @impl true
   def handle_cast({:join, suid}, state) do
     %Shard{} = shard = Repo.get_by!(Shard, slug: suid)
-    %Session{} = new_session = initialise_session(shard)
+    %Session{} = session = initialise_session(shard)
 
-    {:noreply, Map.update(state, suid, new_session, &join_session/1)}
-  end
-
-  @doc false
-  @impl true
-  def handle_cast({:leave, suid}, state) do
-    %Session{} = session = Map.fetch!(state, suid)
-
-    case leave_session(session) do
-      %Session{} = s when s.participants <= 0 ->
-        {:noreply, Map.delete(state, suid)}
-
-      %Session{} = updated_session ->
-        {:noreply, Map.put(state, suid, updated_session)}
+    if not Map.has_key?(state, suid) do
+      # Needed to track session leaves to eventually clean up.
+      :ok = subscribe(suid)
     end
+
+    {:noreply, Map.put_new(state, suid, session)}
   end
 
   @doc false
   @impl true
   def handle_call({:get_document, suid}, _from, state) do
-    {:reply, state |> Map.fetch!(suid) |> Map.update!(:updates, &Enum.reverse/1), state}
+    if session = Map.get(state, suid) do
+      doc = Map.update!(session, :updates, &Enum.reverse/1)
+      {:reply, doc, state}
+    else
+      {:reply, :error, state}
+    end
   end
 
   @doc false
   @impl true
   def handle_call({:fetch_changes, suid, version}, _from, state) do
-    %Session{} = session = Map.fetch!(state, suid)
-    behind = session.version - version
-
-    {:reply, pending_changes(session, behind), state}
+    if session = Map.get(state, suid) do
+      behind = session.version - version
+      {:reply, pending_changes(session, behind), state}
+    else
+      {:reply, :error, state}
+    end
   end
 
   @doc false
@@ -168,19 +183,13 @@ defmodule Vik.Authority do
 
       # Notify other clients of the new updates.
       broadcast(suid, {:collab, updates})
-  
+
       {:reply, :ok, state}
     end
   end
 
   defp initialise_session(shard) do
     %Session{doc: shard.source_code}
-  end
-  defp join_session(session) do
-    Map.update!(session, :participants, &(&1 + 1))
-  end
-  defp leave_session(session) do
-    Map.update!(session, :participants, &(&1 - 1))
   end
 
   defp pending_changes(_session, x) when x < 0, do: []
@@ -194,9 +203,33 @@ defmodule Vik.Authority do
     |> Map.put(:updates, Enum.reverse(new) ++ session.updates)
   end
 
-  # PubSub helpers
+  # Message handling for destroying empty sessions
 
-  @topic "@collab/"
+  @impl true
+  def handle_info(%{event: "presence_diff", topic: @topic <> suid}, state) do
+    case count_participants(suid) do
+      n when n == 0 ->
+        Logger.info("Session #{suid} is empty; cleaning up.")
+      {:noreply, Map.delete(state, suid)}
+
+      n when n >= 1 ->
+        Logger.info("#{n} participants left in session '#{suid}'.")
+        {:noreply, state}
+    end
+  end
+
+  @impl true
+  def handle_info(message, state) do
+    Logger.debug("Unhandled event: #{inspect(message)}")
+    {:noreply, state}
+  end
+
+  # PubSub & Presence helpers
+
+  defp track(uid, suid) when is_binary(uid) do
+    with {:ok, _} <-
+      Presence.track(self(), @topic <> suid, uid, %{}), do: :ok
+  end
 
   defp subscribe(suid) when is_binary(suid) do
     PubSub.subscribe(@topic <> suid)
