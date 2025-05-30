@@ -33,7 +33,7 @@ defmodule VikWeb.Auth do
   end
 
   defp validate_credentials(conn) do
-    app_password = System.get_env("AUTH_PASSWORD", "vikingsarecool1")        
+    app_password = System.get_env("AUTH_PASSWORD", "pannekoek")        
 
     with {username, password} <- parse_basic_auth(conn) do
       if secure_compare(password, app_password) do
