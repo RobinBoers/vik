@@ -1,6 +1,6 @@
 import { ViewPlugin } from "@codemirror/view";
 import { Text, ChangeSet } from "@codemirror/state";
-import { addCursor, sharedEffects } from "./cursors";
+import { addCursor, removeCursor, sharedEffects } from "./cursors";
 
 import {
   receiveUpdates,
