@@ -42,7 +42,7 @@ defmodule VikWeb.DashboardLive do
   end
 
   defp load_shards do
-    query = from s in Shard, order_by: [desc: s.updated_at], limit: 7
+    query = from s in Shard, order_by: [desc: s.updated_at]
 
     for %Shard{} = shard <- Repo.all(query), into: %{} do
       PubSub.subscribe(shard.slug)
