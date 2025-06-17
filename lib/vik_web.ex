@@ -51,8 +51,6 @@ defmodule VikWeb do
         formats: [:html, :json],
         layouts: [html: VikWeb.Layouts]
 
-      use Gettext, backend: VikWeb.Gettext
-
       import Plug.Conn
 
       unquote(verified_routes())
@@ -111,9 +109,6 @@ defmodule VikWeb do
 
   defp html_helpers do
     quote do
-      # Translation
-      use Gettext, backend: VikWeb.Gettext
-
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components
