@@ -25,7 +25,7 @@ defmodule Vik.Presence do
   def subscribe(suid) when is_binary(suid) do
     PubSub.subscribe(@topic <> suid)
   end
-  
+
   @doc """
   Unsubscribes from room join/leaves.
   """
