@@ -23,6 +23,13 @@ defmodule VikWeb.Router do
     live "/", HomeLive, :landing
   end
 
+  scope "/api", VikWeb do
+    pipe_through :api
+
+    get "/:slug", ShardController, :execute
+    post "/:slug", ShardController, :execute
+  end
+
   scope "/", VikWeb do
     pipe_through [:browser, :require_auth]
 
@@ -31,11 +38,5 @@ defmodule VikWeb.Router do
     live "/shell", ShellLive, :shell
     live "/log", LogLive, :log
     live "/:slug", ShardLive, :edit
-  end
-
-  scope "/api", VikWeb do
-    pipe_through :api
-    get "/:slug", ShardController, :execute
-    post "/:slug", ShardController, :execute
   end
 end
