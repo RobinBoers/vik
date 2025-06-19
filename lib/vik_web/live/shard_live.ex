@@ -86,6 +86,7 @@ defmodule VikWeb.ShardLive do
       Webhook.push("shard.save", shard)
       {:noreply, put_flash(socket, :error, "Cannot run deploy in parallel.")}
     else
+      Webhook.push("shard.save", shard)
       Webhook.push("shard.deploy", shard)
       {:noreply, assign(socket, task: launch_compile_worker(shard))}
     end

@@ -6,15 +6,16 @@ defmodule Vik.Logger do
   this comprises all exceptions and related messages
   emitted since application boot.
 
-  This server also supports webhooks to push notifications
-  to other platforms (eg. Discord).
+  This server pushes messages to the default webhook configured
+  via the `DEFAULT_WEBHOOK` environment variable. An additional
+  logger-specific webhook is supported to.
 
-  To utilize this functionality, export the `WEBHOOK_URL`
+  To utilize this functionality, export the `LOGGER_WEBHOOK`
   variable in your system's environment:
 
-      export WEBHOOK_URL="https://discord.com/api/webhooks/..."
+      export LOGGER_WEBHOOK="https://discord.com/api/webhooks/..."
 
-  The webhook will receive messages in the following JSON
+  The webhook will also receive messages in the following JSON
   structured format (as defined by `t:Vik.Webhook.payload/0`):
 
       {"event": "logger.message", "content": "** (RuntimeError) hewwo world :3"}

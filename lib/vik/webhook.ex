@@ -5,10 +5,16 @@ defmodule Vik.Webhook do
 
   ## Usage
 
-  To utilize this functionality, export the `WEBHOOK_URL`
+  To utilize this functionality, export the `DEFAULT_WEBHOOK`
   variable in your system's environment:
 
-      export LOGGER_HOOK="https://discord.com/api/webhooks/..."
+      export DEFAULT_WEBHOOK="https://discord.com/api/webhooks/..."
+
+  ## Available webhooks
+
+  - `DEFAULT_WEBHOOK` receives messages for *all* events.
+  - `LOGGER_WEBHOOK` receives only `logger.message` events.
+  - `SCRY_WEBHOOK` receives only `shard.save` events.
 
   """
 
@@ -31,7 +37,7 @@ defmodule Vik.Webhook do
         event: event(),
         content: term()
       }
-  
+
   @doc """
   Sends a message to a user-defined webhook.
 
@@ -43,14 +49,33 @@ defmodule Vik.Webhook do
   """
   @spec push(event(), term()) :: :ok
   def push(event, data) do
-    spawn(fn -> maybe_push(~m{event, content: data}) end)
+    case event do
+      "logger.message" ->
+        async_push(:logger, event, data)
+        async_push(:default, event, data)
+
+      "shard.save" ->
+        async_push(:scry, event, data)
+        async_push(:default, event, data)
+
+      event ->
+        async_push(:default, event, data)
+    end
 
     :ok
   end
 
-  defp maybe_push(payload) do
-    if url = System.get_env("WEBHOOK_URL") do
-      Req.post!(url, json: payload)
+  defp async_push(scope, event, content) do
+    if url = webhook_url(scope) do
+      spawn(fn -> Req.post!(url, json: ~m{event, content}) end)
     end
+  end
+
+  defp webhook_url(scope) do
+    scope
+    |> Atom.to_string()
+    |> String.upcase()
+    |> then(&(&1 <> "_WEBHOOK"))
+    |> System.get_env()
   end
 end
