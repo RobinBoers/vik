@@ -5,7 +5,7 @@ defmodule Vik.Compiler do
   """
 
   alias Vik.Shard
-  alias Vik.Compiled
+  alias Vik.Result
   alias Vik.Thread
 
   @type slug :: Vik.slug()
@@ -117,7 +117,7 @@ defmodule Vik.Compiler do
   @spec resolve_includes!([slug()]) :: [[module()]]
   defp resolve_includes!(includes) when is_list(includes) do
     for slug <- includes do
-      %Compiled{} = compiled = Thread.ensure_compiled!(slug)
+      %Result{} = compiled = Thread.ensure_compiled!(slug)
       compiled.exports
     end
   end

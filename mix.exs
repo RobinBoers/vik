@@ -106,7 +106,7 @@ defmodule Vik.MixProject do
       formatters: ["html"],
       groups_for_modules: [
         "Applications": [KV],
-        "Compilation": [Vik.Shard, Vik.Compiled, Vik.Compiler, Vik.Store, Vik.Thread],
+        "Compilation": [Vik.Shard, Vik.Result, Vik.Compiler, Vik.Store, Vik.Thread],
         "Collaborative": [~r/Vik.Authority/, Vik.Presence],
         "Web Layer": [~r/VikWeb/]
       ]

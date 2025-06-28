@@ -7,7 +7,7 @@ defmodule VikWeb.ShardLive do
   alias Vik.Repo
   alias Vik.Store
   alias Vik.Shard
-  alias Vik.Compiled
+  alias Vik.Result
   alias Vik.PubSub
   alias Vik.Thread
   alias Vik.Webhook
@@ -309,7 +309,7 @@ defmodule VikWeb.ShardLive do
   end
 
   defp plug_exposed?(nil), do: false
-  defp plug_exposed?(~m{:Compiled, module}) do
+  defp plug_exposed?(~m{:Result, module}) do
     function_exported?(module, :__call__, 0)
   end
 end

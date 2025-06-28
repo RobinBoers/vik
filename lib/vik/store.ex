@@ -1,27 +1,27 @@
 defmodule Vik.Store do
   @moduledoc """
   The Store is a key-value store that holds the compile
-  results (`Vik.Compiled`) by slug.
+  results (`Vik.Result`) by slug.
   """
 
   alias Vik.Shard
-  alias Vik.Compiled
+  alias Vik.Result
 
-  @type state :: %{Vik.slug() => Compiled.t()}
+  @type state :: %{Vik.slug() => Result.t()}
   @type status :: :up | :down | :stale
 
   alias __MODULE__.Server
 
-  @spec fetch(Shard.t()) :: {:ok, Compiled.t()} | {:error, term()}
-  @spec fetch(Vik.slug()) :: {:ok, Compiled.t()} | {:error, term()}
+  @spec fetch(Shard.t()) :: {:ok, Result.t()} | {:error, term()}
+  @spec fetch(Vik.slug()) :: {:ok, Result.t()} | {:error, term()}
   def fetch(%Shard{} = shard), do: fetch(shard.slug)
 
   def fetch(slug) do
     GenServer.call(Server, {:fetch, slug})
   end
 
-  @spec fetch!(Shard.t()) :: Compiled.t()
-  @spec fetch!(Vik.slug()) :: Compiled.t()
+  @spec fetch!(Shard.t()) :: Result.t()
+  @spec fetch!(Vik.slug()) :: Result.t()
   def fetch!(%Shard{} = shard), do: fetch!(shard.slug)
 
   def fetch!(slug) do
@@ -31,8 +31,8 @@ defmodule Vik.Store do
     end
   end
 
-  @spec get(Shard.t()) :: Compiled.t() | nil
-  @spec get(Vik.slug()) :: Compiled.t() | nil
+  @spec get(Shard.t()) :: Result.t() | nil
+  @spec get(Vik.slug()) :: Result.t() | nil
   def get(%Shard{} = shard), do: get(shard.slug)
 
   def get(slug) do
@@ -42,8 +42,8 @@ defmodule Vik.Store do
     end
   end
 
-  @spec put(Shard.t(), Compiled.t()) :: :ok
-  @spec put(Vik.slug(), Compiled.t()) :: :ok
+  @spec put(Shard.t(), Result.t()) :: :ok
+  @spec put(Vik.slug(), Result.t()) :: :ok
   def put(%Shard{} = shard, data), do: put(shard.slug, data)
 
   def put(slug, data) do
@@ -97,7 +97,7 @@ defmodule Vik.Store do
     @impl true
     def handle_cast({:mark_stale, slug}, state) do
       if data = Map.get(state, slug) do
-        {:noreply, Map.put(state, slug, Compiled.put_stale(data))}
+        {:noreply, Map.put(state, slug, Result.put_stale(data))}
       else
         {:noreply, state}
       end
@@ -110,8 +110,8 @@ defmodule Vik.Store do
 
     def resolve_status(state, slug) do
       case Map.get(state, slug) do
-        %Compiled{stale?: true} -> :stale
-        %Compiled{stale?: false} -> :up
+        %Result{stale?: true} -> :stale
+        %Result{stale?: false} -> :up
         nil -> :down
       end
     end

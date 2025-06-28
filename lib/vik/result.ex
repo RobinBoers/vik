@@ -1,4 +1,4 @@
-defmodule Vik.Compiled do
+defmodule Vik.Result do
   @moduledoc """
   Structural representation of a compiled `Vik.Shard`.
   Holds metadata regarding compile-dependencies, along

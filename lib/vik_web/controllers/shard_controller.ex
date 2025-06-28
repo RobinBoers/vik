@@ -5,7 +5,7 @@ defmodule VikWeb.ShardController do
   alias Vik.Repo
   alias Vik.Store
   alias Vik.Shard
-  alias Vik.Compiled
+  alias Vik.Result
   alias Vik.PubSub
 
   import Structo
@@ -40,7 +40,7 @@ defmodule VikWeb.ShardController do
     end
   end
 
-  defp extract_spec(~m{:Compiled, module}) do
+  defp extract_spec(~m{:Result, module}) do
     if function_exported?(module, :__call__, 0) do
       {module, module.__call__()}
     end
