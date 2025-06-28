@@ -1,6 +1,6 @@
 defmodule Vik.ShardNotFound do
   @moduledoc """
-  Raised when a Shard cannot be found in the database.
+  Raised when a `Vik.Shard` cannot be found in the database.
   """
   defexception [:slug, plug_status: 404]
 

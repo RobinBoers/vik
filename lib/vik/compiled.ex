@@ -1,6 +1,13 @@
 defmodule Vik.Compiled do
   @moduledoc """
-  Structural representation of a compiled shard.
+  Structural representation of a compiled `Vik.Shard`.
+  Holds metadata regarding compile-dependencies, along
+  with the compilation result.
+
+  The `stale?` flag indicates that a newer version of
+  the module exists in the database but failed to compile.
+
+  This data is recorded in the `Vik.Store`.
   """
   use TypedStruct
 

@@ -1,7 +1,7 @@
 defmodule Vik.Store do
   @moduledoc """
   The Store is a key-value store that holds the compile
-  results (`Vik.Compiled`) by Shard slug.
+  results (`Vik.Compiled`) by slug.
   """
 
   alias Vik.Shard

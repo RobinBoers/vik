@@ -19,6 +19,13 @@ defmodule VikWeb.CodeMirror do
 
   attr :rest, :global
 
+  @doc """
+  Renders a CodeMirror instance as a drop-in replacement
+  for a HTML textarea.
+
+  This component provides feature-parity with
+  `CoreComponents.input/1`.
+  """
   def codemirror(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     assigns
     |> assign(field: nil, id: assigns.id || field.id)
@@ -37,6 +44,10 @@ defmodule VikWeb.CodeMirror do
     """
   end
 
+  @doc """
+  Applies the provided `Vik.Authority.Update`s to
+  the CodeMirror instance with the given ID.
+  """
   def sync(id, updates) do
     send_update(VikWeb.CodeMirror, ~m{id, updates})
   end

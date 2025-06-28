@@ -1,4 +1,5 @@
 defmodule VikWeb.Router do
+  @moduledoc false
   use VikWeb, :router
 
   import VikWeb.Auth

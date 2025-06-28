@@ -1,18 +1,37 @@
 defmodule Vik.MixProject do
   use Mix.Project
 
+  @documentation "https://hexdocs.pm/vik"
+  @git_repository "https://git.dupunkto.org/~axcelott/vik"
+  
   def project do
     [
       name: "Vik",
-      source_url: "https://github.com/RobinBoers/vik",
-      homepage_url: "https://dupunkto.org/vik",
       app: :vik,
-      version: "0.1.0",
+      version: "0.0.1-rc1",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+
+      # Docs
+      source_url: @git_repository,
+      homepage_url: @documentation,
+      description: description(),
+      package: package(),
+      docs: docs()
+    ]
+  end
+
+  def description do
+    "What if GitHub gists, AWS Lambdas and Elixir Plugs had a baby?"
+  end
+
+  defp package do
+    [
+      licenses: ["Unlicense"],
+      links: %{"Sources" => @git_repository}
     ]
   end
 
@@ -75,6 +94,21 @@ defmodule Vik.MixProject do
         "tailwind vik --minify",
         "esbuild vik --minify",
         "phx.digest"
+      ]
+    ]
+  end
+
+  defp docs do
+    [
+      main: "Vik",
+      api_reference: false,
+      authors: ["Robijntje"],
+      formatters: ["html"],
+      groups_for_modules: [
+        "Applications": [KV],
+        "Compilation": [Vik.Shard, Vik.Compiled, Vik.Compiler, Vik.Store, Vik.Thread],
+        "Collaborative": [~r/Vik.Authority/, Vik.Presence],
+        "Web Layer": [~r/VikWeb/]
       ]
     ]
   end

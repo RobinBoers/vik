@@ -1,7 +1,7 @@
 defmodule Vik.ShardNotExposed do
   @moduledoc """
-  Raised when a Shard is being accessed via its HTTP, but
-  it does not provide a top-level `call/2` function.
+  Raised when a `Vik.Shard` is being accessed via HTTP, but
+  it does not `Vik.expose/1` any plug.
   """
   defexception [:slug, plug_status: 403]
 

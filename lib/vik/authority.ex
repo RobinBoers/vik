@@ -19,7 +19,13 @@ defmodule Vik.Authority do
   @type version :: non_neg_integer()
 
   typedstruct module: Session do
-    @moduledoc false
+    @moduledoc """
+    Structural representation of a collaborative session.
+
+    Holds metadata regarding the number of active participants,
+    the source code of the original document, updates since
+    and the version of the latest rendition of the document.
+    """
     @derive {Jason.Encoder, only: [:version, :updates, :doc]}
 
     field :participants, pos_integer(), default: 1

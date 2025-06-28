@@ -1,7 +1,7 @@
 defmodule Vik.ShardNotAlive do
   @moduledoc """
-  Raised when a Shard is being accessed via its HTTP, when
-  its available in the database, but not (yet) compiled.
+  Raised when a `Vik.Shard` is being accessed via HTTP, and
+  it's available in the database, but not (yet) compiled.
 
   This occurs when the Shard cannot compile and the app restarts,
   thereby deleting the stale module from runtime.
