@@ -24,7 +24,7 @@ function handleEventAsync(lv, event) {
 function getDocument(lv) {
   return pushEventAsync(lv, "collab:doc").then((d) => ({
     ...d,
-    doc: Text.of(d.doc.split("\n")),
+    doc: d.doc && Text.of(d.doc.split("\n")),
   }));
 }
 
