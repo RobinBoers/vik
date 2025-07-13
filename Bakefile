@@ -1,20 +1,9 @@
 #!/bin/sh
 
-# To create the docker context:
-# docker context create $CTX --docker "host=ssh://axcelott@dupunkto.org"
-
-CTX=nov
-TAG=ghcr.io/robinboers/vik
-
 serve() {
 	mix phx.server
 }
 
 build() {
-	docker --context=$CTX build -t $TAG .
-}
-
-deploy() {
-	echo "docker push $TAG" | ssh nov
-	echo "/volume1/docker/bootstrap.sh vik" | ssh nov
+	lift deploy
 }
