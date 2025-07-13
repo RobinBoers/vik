@@ -60,8 +60,6 @@ defmodule Vik.MixProject do
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
-      {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:typedstruct, "~> 0.5.3"},
       {:structo, "~> 0.1.2"},
