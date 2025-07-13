@@ -2,8 +2,6 @@ defmodule Vik.Application do
   @moduledoc false
   use Application
 
-  # TODO(robin): attempt to deploy all Shards on startup :)
-
   @impl true
   def start(_type, _args) do
     children = [
