@@ -63,13 +63,13 @@ defmodule Vik.MixProject do
       {:bandit, "~> 1.5"},
       {:typedstruct, "~> 0.5.3"},
       {:structo, "~> 0.2.0"},
+      {:req, "~> 0.5.10"},
 
       # For documentation :)
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
 
       # Useful in Shards
       {:wallaby, "~> 0.30.0"},
-      {:req, "~> 0.5.10"}
     ]
   end
 

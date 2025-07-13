@@ -26,7 +26,7 @@ defmodule Vik.Authority do
     the source code of the original document, updates since
     and the version of the latest rendition of the document.
     """
-    @derive {JSON.Encoder, only: [:version, :updates, :doc]}
+    @derive {Jason.Encoder, only: [:version, :updates, :doc]}
 
     field :participants, pos_integer(), default: 1
     field :version, integer(), default: 0
@@ -48,9 +48,9 @@ defmodule Vik.Authority do
     field :changes, [term()]
     field :effects, [term()]
 
-    defimpl JSON.Encoder do
+    defimpl Jason.Encoder do
       def encode(%{client_id: cid} = d, opts) do
-        JSON.encode!(%{
+        Jason.Encode.map(%{
           "clientID" => cid,
           "changes" => d.changes,
           "effects" => d.effects
