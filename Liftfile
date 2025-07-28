@@ -1,0 +1,4 @@
+name: vik
+image: robinboers/vik
+registry: ghcr.io
+host: nov
