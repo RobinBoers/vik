@@ -23,7 +23,7 @@ defmodule VikWeb.DashboardLive do
   @impl true
   def mount(_params, _session, socket) do
     PubSub.subscribe("vik:dashboard")
-    {:ok, assign(socket, shards: load_shards(), collapsed: MapSet.new())}
+    {:ok, assign(socket, shards: load_shards(), open: MapSet.new())}
   end
 
   @impl true
@@ -94,7 +94,7 @@ defmodule VikWeb.DashboardLive do
       <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 grid-rows-[250px]">
         <.shards_listing 
           shards={@shards}
-          collapsed={@collapsed} 
+          open={@open} 
         />
         <.system_limits usage={@usage} limits={@limits} />
         <.memory_usage usage={@usage} />
@@ -131,7 +131,7 @@ defmodule VikWeb.DashboardLive do
   end
 
   attr :shards, :map, required: true
-  attr :collapsed, :any, required: true
+  attr :open, :any, required: true
 
   defp shards_listing(assigns) do
     ~H"""
@@ -173,11 +173,11 @@ defmodule VikWeb.DashboardLive do
             </tr>
             <tr :for={{{:group, group}, group_shards} <- assigns.shards} class="group">
               <td colspan="3" class="py-0">
-                <div class={["border border-transparent", MapSet.member?(@collapsed, group) && "rounded overflow-hidden my-1 !border-zinc-200"]}>
+                <div class={["border border-transparent", MapSet.member?(@open, group) && "rounded overflow-hidden my-1 !border-zinc-200"]}>
                   <div 
                     phx-click="toggle_group" 
                     phx-value-group={group}
-                    class={["flex items-center justify-between gap-2 py-4 px-4 hover:bg-zinc-50 cursor-pointer", MapSet.member?(@collapsed, group) && "!h-full bg-zinc-50 hover:!bg-zinc-100 border-b border-zinc-200 !py-3"]}
+                    class={["flex items-center justify-between gap-2 py-4 px-4 hover:bg-zinc-50 cursor-pointer", MapSet.member?(@open, group) && "!h-full bg-zinc-50 hover:!bg-zinc-100 border-b border-zinc-200 !py-3"]}
                   >
                     <span>
                       <%= case List.first(group_shards) do
@@ -186,14 +186,14 @@ defmodule VikWeb.DashboardLive do
                       end %>
                       <span class="text-xs font-mono text-zinc-400 pl-1">//{length(group_shards)}</span>
                     </span>
-                    <svg :if={not MapSet.member?(@collapsed, group)} class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg :if={not MapSet.member?(@open, group)} class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
-                    <svg :if={MapSet.member?(@collapsed, group)} class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg :if={MapSet.member?(@open, group)} class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
                   </div>
-                  <table :if={MapSet.member?(@collapsed, group)} class="w-full">
+                  <table :if={MapSet.member?(@open, group)} class="w-full">
                     <colgroup>
                       <col class="w-full lg:w-4/8" />
                       <col class="lg:w-1/8" />
@@ -231,15 +231,15 @@ defmodule VikWeb.DashboardLive do
 
   @impl true
   def handle_event("toggle_group", %{"group" => group}, socket) do
-    collapsed = toggle_group(socket.assigns.collapsed, group)
-    {:noreply, assign(socket, :collapsed, collapsed)}
+    open = toggle_group(socket.assigns.open, group)
+    {:noreply, assign(socket, :open, open)}
   end
   
-  defp toggle_group(collapsed, group) do
-    if MapSet.member?(collapsed, group) do
-      MapSet.delete(collapsed, group)
+  defp toggle_group(open, group) do
+    if MapSet.member?(open, group) do
+      MapSet.delete(open, group)
     else
-      MapSet.put(collapsed, group)
+      MapSet.put(open, group)
     end
   end
 
