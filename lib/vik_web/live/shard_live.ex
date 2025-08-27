@@ -249,7 +249,7 @@ defmodule VikWeb.ShardLive do
           </ul>
         </div>
 
-        <div>
+        <div class="hidden [&:has(li:nth-child(2))]:block">
           <h3 class="font-semibold text-lg mb-1">Collaboration session</h3>
           <ul id="participants" phx-update="stream" class="flex items-center gap-1">
             <li :for={{dom_id, p} <- @streams.participants} id={dom_id} title={p.name}>
