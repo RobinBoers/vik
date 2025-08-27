@@ -91,7 +91,7 @@ defmodule VikWeb.DashboardLive do
         debug={assigns[:debug]}
       />
       
-      <div class="grid gap-4 grid-cols-1 lg:grid-cols-2">
+      <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 grid-rows-[250px]">
         <.shards_listing 
           shards={@shards}
           collapsed={@collapsed} 
