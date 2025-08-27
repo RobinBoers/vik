@@ -4,6 +4,6 @@ serve() {
 	mix phx.server
 }
 
-build() {
+deploy() {
 	lift deploy
 }

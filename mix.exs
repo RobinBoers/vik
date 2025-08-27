@@ -61,6 +61,7 @@ defmodule Vik.MixProject do
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:bandit, "~> 1.5"},
+      {:decorator, "~> 1.3"},
       {:typedstruct, "~> 0.5.3"},
       {:structo, "~> 0.2.0"},
       {:req, "~> 0.5.10"},

@@ -1,20 +1,6 @@
 defmodule VikWeb do
   @moduledoc """
-  The entrypoint for defining your web interface, such
-  as controllers, components, channels, and so on.
-
-  This can be used in your application as:
-
-      use VikWeb, :controller
-      use VikWeb, :html
-
-  The definitions below will be executed for every controller,
-  component, etc, so keep them short and clean, focused
-  on imports, uses and aliases.
-
-  Do NOT define functions inside the quoted expressions
-  below. Instead, define additional modules and import
-  those modules here.
+  Web Layer for the Editor backend.
   """
 
   def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
@@ -23,7 +9,6 @@ defmodule VikWeb do
     quote do
       use Phoenix.Router, helpers: false
 
-      # Import common connection and controller functions to use in pipelines
       import Plug.Conn
       import Phoenix.Controller
       import Phoenix.LiveView.Router
@@ -71,6 +56,10 @@ defmodule VikWeb do
           stream_lines: 3
         ]
 
+      # Allows you to return just socket instead of
+      # needing to wrap in {:noreply, socket} tuple.
+      use VikWeb.Decorators
+      
       unquote(html_helpers())
     end
   end
@@ -98,26 +87,20 @@ defmodule VikWeb do
     quote do
       use Phoenix.Component
 
-      # Import convenience functions from controllers
       import Phoenix.Controller,
         only: [get_csrf_token: 0, view_module: 1, view_template: 1]
 
-      # Include general helpers for rendering HTML
       unquote(html_helpers())
     end
   end
 
   defp html_helpers do
     quote do
-      # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components
       import VikWeb.CoreComponents
 
-      # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
 
-      # Routes generation with the ~p sigil
       unquote(verified_routes())
     end
   end
@@ -137,6 +120,9 @@ defmodule VikWeb do
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
   end
+
+  # Helpers used in terminal components. Should probably be moved later.
+  # But ehhh, y'know... if it works, don't touch it.
 
   def stream_color(socket, assign, lines, color) do
     lines = Enum.map(lines, &{:safe, "<span class='#{color}'>#{&1}</span>"})
