@@ -46,6 +46,7 @@ defmodule VikWeb.ShardLive do
     |> assign(:status, Store.status(shard))
     |> stream(:participants, participants)
     |> assign_compiled(shard)
+    |> assign_group(shard)
     |> assign_changeset(shard)
     |> stream_lines(:logs)
   end
@@ -62,6 +63,19 @@ defmodule VikWeb.ShardLive do
       |> assign(:compiled, nil)
       |> assign(:dependencies, nil)
     end
+  end
+
+  defp assign_group(socket, shard) do
+    case String.split(shard.slug, "/", parts: 2) do
+      [group, _] -> assign(socket, :group, query_siblings(group))
+      [_] -> assign(socket, :group, query_siblings(shard.slug))
+    end
+  end
+
+  defp query_siblings(group) do
+    Repo.all(from s in Shard, 
+      where: like(s.slug, ^"#{group}/%") or s.slug == ^group,
+      order_by: [asc: s.slug])
   end
 
   defp assign_changeset(socket, shard) do
@@ -209,7 +223,7 @@ defmodule VikWeb.ShardLive do
             href={~p"/api/#{@shard.slug}"}
             target="_blank"
             title="Open in new tab"
-            class="rounded-full bg-gray-100 hover:bg-gray-200 p-2 flex items-center justify-center"
+            class="rounded-full bg-gray-100 hover:bg-gray-200 -my-1 p-2 flex items-center justify-center"
           >
             <.icon name="hero-globe-alt" />
           </a>
@@ -222,7 +236,7 @@ defmodule VikWeb.ShardLive do
             <.icon name="hero-cloud" /> <span data-disable-with="Compiling...">Deploy</span>
           </.button>
         </div>
-        <div :if={@compiled} class="p-2 shadow rounded bg-zinc-100/85">
+        <div :if={@compiled} class="p-2 rounded bg-zinc-100/85">
           <h3 class="font-semibold text-lg mb-1">Exports</h3>
 
           <p :if={@compiled.exports == []} class="text-zinc-500">None</p>
@@ -235,13 +249,24 @@ defmodule VikWeb.ShardLive do
             </li>
           </ul>
         </div>
-        <div :if={@dependencies} class="p-2 shadow rounded bg-zinc-100/85">
+        <div :if={@dependencies} class="p-2 rounded bg-zinc-100/85">
           <h3 class="font-semibold text-lg mb-1">Dependencies</h3>
 
           <p :if={@dependencies == []} class="text-zinc-500">None</p>
 
           <ul>
             <li :for={%Shard{} = shard <- @dependencies}>
+              <.link navigate={~p"/#{shard.slug}"}>
+                {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
+              </.link>
+            </li>
+          </ul>
+        </div>
+        <div :if={length(@group) > 1} class="p-2 rounded bg-zinc-100/85">
+          <h3 class="font-semibold text-lg mb-1">Group</h3>
+
+          <ul>
+            <li :for={%Shard{} = shard <- @group}>
               <.link navigate={~p"/#{shard.slug}"}>
                 {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
               </.link>
