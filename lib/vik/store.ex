@@ -12,6 +12,11 @@ defmodule Vik.Store do
 
   alias __MODULE__.Server
 
+  @spec all() :: %{Vik.slug() => Result.t()}
+  def all do
+    GenServer.call(Server, :all)
+  end
+
   @spec fetch(Shard.t()) :: {:ok, Result.t()} | {:error, term()}
   @spec fetch(Vik.slug()) :: {:ok, Result.t()} | {:error, term()}
   def fetch(%Shard{} = shard), do: fetch(shard.slug)
@@ -82,6 +87,11 @@ defmodule Vik.Store do
     @impl true
     def init(opts) do
       {:ok, Map.new(opts)}
+    end
+
+    @impl true
+    def handle_call(:all, _from, state) do
+      {:reply, state, state}
     end
 
     @impl true

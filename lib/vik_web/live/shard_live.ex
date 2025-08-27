@@ -47,6 +47,7 @@ defmodule VikWeb.ShardLive do
     |> stream(:participants, participants)
     |> assign_compiled(shard)
     |> assign_group(shard)
+    |> assign_dependents(shard)
     |> assign_changeset(shard)
     |> stream_lines(:logs)
   end
@@ -76,6 +77,18 @@ defmodule VikWeb.ShardLive do
     Repo.all(from s in Shard, 
       where: like(s.slug, ^"#{group}/%") or s.slug == ^group,
       order_by: [asc: s.slug])
+  end
+
+  defp assign_dependents(socket, shard) do
+    dependents = 
+      Store.all()
+      |> Enum.filter(fn {_, r} -> shard.slug in r.includes end)
+      |> Enum.map(fn {slug, _} -> slug end)
+      |> then(&Repo.all(from s in Shard,
+        where: s.slug in ^&1,
+        order_by: [asc: s.slug]))
+
+    assign(socket, :dependents, dependents)
   end
 
   defp assign_changeset(socket, shard) do
@@ -249,13 +262,22 @@ defmodule VikWeb.ShardLive do
             </li>
           </ul>
         </div>
-        <div :if={@dependencies} class="p-2 rounded bg-zinc-100/85">
+        <div :if={length(@dependencies) >= 1} class="p-2 rounded bg-zinc-100/85">
           <h3 class="font-semibold text-lg mb-1">Dependencies</h3>
-
-          <p :if={@dependencies == []} class="text-zinc-500">None</p>
 
           <ul>
             <li :for={%Shard{} = shard <- @dependencies}>
+              <.link navigate={~p"/#{shard.slug}"}>
+                {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
+              </.link>
+            </li>
+          </ul>
+        </div>
+        <div :if={length(@dependents) >= 1} class="p-2 shadow rounded bg-zinc-100/85">
+          <h3 class="font-semibold text-lg mb-1">Dependents</h3>
+
+          <ul>
+            <li :for={%Shard{} = shard <- @dependents}>
               <.link navigate={~p"/#{shard.slug}"}>
                 {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
               </.link>
