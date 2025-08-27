@@ -133,7 +133,7 @@ defmodule Vik.Compiler do
 
   @spec extract_includes(source()) :: [slug()]
   def extract_includes(source) when is_binary(source) do
-    regex = ~r/include\s+"([\w-]+)"/
+    regex = ~r/include\s+"([\w-]+(?:\/[\w-]+)?)"/
     for [_, slug] <- Regex.scan(regex, source), do: slug
   end
 
@@ -142,7 +142,12 @@ defmodule Vik.Compiler do
   """
   @spec module_name(slug()) :: module()
   def module_name(slug) do
-    ns = slug |> String.replace("-", "_") |> Macro.camelize()
-    [Vik, UserShard, ns]
+    [Vik, Runtime | module_segments(slug)]
+  end
+
+  defp module_segments(slug) do
+    for seg <- String.split(slug, "/") do
+      seg |> String.replace("-", "_") |> Macro.camelize()
+    end
   end
 end

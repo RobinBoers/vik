@@ -72,7 +72,7 @@ defmodule Vik.Logger do
   Logs an exception.
 
   Excludes all stacktraces unrelated to user code.
-  (Everything outside the `Vik.UserShard` namespace.)
+  (Everything outside the `Vik.Runtime` namespace.)
   """
   @spec exception(Exception.t(), Exception.stacktrace()) :: :ok
   def exception(e, stacktrace \\ []) do
@@ -146,12 +146,12 @@ defmodule Vik.Logger do
 
   # This is ugly. It works tho :)
 
-  @user_mod "Elixir.Vik.UserShard"
+  @user_mod "Elixir.Vik.Runtime"
 
   defp clean_trace(stacktrace) do
     Enum.flat_map(stacktrace, fn {m, f, a, info} ->
       if m |> Atom.to_string() |> String.starts_with?(@user_mod) do
-        ["Vik", "UserShard" | m] = Module.split(m)
+        ["Vik", "Runtime" | m] = Module.split(m)
         [{Module.concat(m), f, a, info}]
       else
         []

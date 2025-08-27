@@ -12,7 +12,15 @@ defmodule VikWeb.ShardController do
 
   plug :put_content_type
 
-  def execute(conn, ~m{slug}s = params) do
+  def single(conn, ~m{slug}s = params) do
+    execute(conn, slug, params)
+  end
+
+  def group(conn, ~m{group, shard}s = params) do
+    execute(conn, "#{group}/#{shard}", params)
+  end
+
+  defp execute(conn, slug, params) do
     case Repo.get_by(Shard, slug: slug) do
       %Shard{} = shard -> try_execute(conn, params, shard)
       nil -> raise Vik.ShardNotFound, slug

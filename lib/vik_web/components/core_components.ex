@@ -390,7 +390,7 @@ defmodule VikWeb.CoreComponents do
         ]}
         {@rest}
       />
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={{msg, _} <- @errors}>{msg}</.error>
     </div>
     """
   end

@@ -32,8 +32,14 @@ defmodule Vik.Shard do
     %__MODULE__{}
     |> cast(attrs, [:slug, :title])
     |> validate_required([:slug, :title])
+    |> validate_slug_format()
     |> validate_exclusion(:slug, @illegal_slugs, message: "is reserved")
     |> unique_constraint(:slug)
+  end
+
+  defp validate_slug_format(changeset) do
+    validate_format(changeset, :slug, ~r/^[a-z0-9-]+(?:\/[a-z0-9-]+)?$/,
+      message: "must be alphanumeric with optionally a single forward slash")
   end
 
   def save_changeset(shard, attrs \\ %{}) do

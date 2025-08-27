@@ -27,8 +27,10 @@ defmodule VikWeb.Router do
   scope "/api", VikWeb do
     pipe_through :api
 
-    get "/:slug", ShardController, :execute
-    post "/:slug", ShardController, :execute
+    get "/:slug", ShardController, :single
+    post "/:slug", ShardController, :single
+    get "/:group/:shard", ShardController, :group
+    post "/:group/:shard", ShardController, :group
   end
 
   scope "/", VikWeb do
