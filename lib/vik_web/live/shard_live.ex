@@ -233,7 +233,7 @@ defmodule VikWeb.ShardLive do
           <div class="flex-grow"></div>
           <a
             :if={plug_exposed?(@compiled)}
-            href={~p"/api/#{@shard.slug}"}
+            href={"/api/#{@shard.slug}"}
             target="_blank"
             title="Open in new tab"
             class="rounded-full bg-gray-100 hover:bg-gray-200 -my-1 p-2 flex items-center justify-center"
