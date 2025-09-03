@@ -6,4 +6,12 @@ serve() {
 
 deploy() {
 	lift deploy
+
+	# We currently have two instances of Vik deployed:
+	# 1) {du}punkto instance, 2) personal instance. I want to deploy both.
+	# They both run on the same server, so the image built in the deploy
+	# step above is already ready-to-go. Since deploy already recreated
+	# one of the two instances, the only thing left to do is to recreate
+	# the other one manually:
+	lift provision fog
 }
