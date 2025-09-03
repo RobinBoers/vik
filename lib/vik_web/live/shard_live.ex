@@ -62,7 +62,7 @@ defmodule VikWeb.ShardLive do
     else
       socket
       |> assign(:compiled, nil)
-      |> assign(:dependencies, nil)
+      |> assign(:dependencies, [])
     end
   end
 
