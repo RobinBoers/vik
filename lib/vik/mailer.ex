@@ -8,7 +8,7 @@ defmodule Vik.Mailer do
   require Logger
 
   def deliver(body, opts \\ []) do
-    from = Keyword.get(opts, :from, System.fetch_env!("SMTP_USERNAME"))
+    from = Keyword.get(opts, :from, System.fetch_env!("SMTP_SENDER"))
     to = Keyword.get(opts, :to, [System.fetch_env!("SMTP_USERNAME")])
 
     deliver(from, to, opts[:subject], body)
