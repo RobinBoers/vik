@@ -65,6 +65,8 @@ defmodule Vik.MixProject do
       {:typedstruct, "~> 0.5.3"},
       {:structo, "~> 0.2.0"},
       {:req, "~> 0.5.10"},
+      {:gen_smtp, "~> 1.2"},
+      {:earmark, "~> 1.4"},
 
       # For documentation :)
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
