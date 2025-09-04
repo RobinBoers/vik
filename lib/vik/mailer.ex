@@ -7,6 +7,13 @@ defmodule Vik.Mailer do
 
   require Logger
 
+  def deliver(body, opts \\ []) do
+    from = Keyword.get(opts, :from, System.fetch_env!("SMTP_USERNAME"))
+    to = Keyword.get(opts, :to, [System.fetch_env!("SMTP_USERNAME")])
+
+    deliver(from, to, opts[:subject], body)
+  end
+
   def deliver(from, to, subject, body) do
     headers = build_headers(from, to, subject)
     body = build_mime(headers, body)
@@ -18,21 +25,26 @@ defmodule Vik.Mailer do
     end
   end
 
-  defp build_headers(from, to, subject) do    
+  defp build_headers(from, to, subject) do
     [
       {"From", from},
-      {"To", if(is_list(to), do: Enum.join(to, ", "), else: to)},
-      {"Subject", subject},
+      {"To", to |> List.wrap() |> Enum.join(", ")},
+      subject && {"Subject", subject},
       {"MIME-Version", "1.0"},
       {"Content-Type", ~s<multipart/alternative; boundary="#{@mime_boundary}">}
     ]
-    |> Enum.map(fn {key, value} -> "#{key}: #{value}" end)
-    |> Enum.join("\r\n")
+    |> Enum.reject(&is_nil/1)
   end
 
   defp build_mime(headers, body) do
+    headers
+    |> Enum.map(fn {key, value} -> "#{key}: #{value}" end)
+    |> Enum.concat([build_multipart(body)])
+    |> Enum.join("\r\n")
+  end
+
+  defp build_multipart(body) do
     """
-    #{headers}\r\n
     --#{@mime_boundary}
     Content-Type: text/plain; charset=UTF-8
     Content-Transfer-Encoding: 7bit
