@@ -2,11 +2,15 @@ defmodule VikWeb.HomeLive do
   @moduledoc false
   use VikWeb, :live_view
 
+  alias Vik.Repo
+  alias Vik.Shard
+
   on_mount VikWeb.Auth
   on_mount {VikWeb.SystemHandler, :static}
 
   @impl true
   def mount(_params, _session, socket) do
+    socket = assign(socket, has_hello?: Repo.get_by(Shard, slug: "hello") != nil)
     {:ok, socket, if socket.assigns.authenticated? do [] else [layout: false] end}
   end
 
@@ -25,7 +29,7 @@ defmodule VikWeb.HomeLive do
 
       <p class="mt-6 flex gap-2 items-center">
         <a class="bg-black text-white hover:opacity-90 px-2 py-1" href={~p"/login"}>login</a>
-        <a class="hover:opacity-90"href={~p"/api/hello"}>demo</a>
+        <a :if={@has_hello?} class="hover:opacity-90"href={~p"/api/hello"}>demo</a>
       </p>
     </div>
     """
