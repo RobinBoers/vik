@@ -22,14 +22,15 @@ defmodule VikWeb.HomeLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <link rel="stylesheet" href="https://cdn.geheimesite.nl/punkt.css" />
     <div class="max-w-[600px] mt-[3em] mx-auto flex flex-col items-center">
       <.logo width="100px" />
 
-      <h1 class="mt-4 text-4xl">is it just smoke and mirrors</h1>
+      <h1 class="mt-5 font-bold">is it just smoke and mirrors</h1>
 
-      <p class="mt-6 flex gap-2 items-center">
-        <a class="bg-black text-white hover:opacity-90 px-2 py-1" href={~p"/login"}>login</a>
-        <a :if={@has_hello?} class="hover:opacity-90"href={~p"/api/hello"}>demo</a>
+      <p class="mt-4 flex gap-2 items-center font-sans text-[0.9em]">
+        <a class="bg-black text-white hover:opacity-80 px-3 py-1" href={~p"/login"}>login</a>
+        <a :if={@has_hello?} class="hover:opacity-80"href={~p"/api/hello"}>demo</a>
       </p>
     </div>
     """
