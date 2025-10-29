@@ -11,7 +11,7 @@ defmodule VikWeb.Router do
     plug :put_root_layout, html: {VikWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :fetch_basic_auth
+    plug :fetch_current_user
   end
 
   pipeline :api do

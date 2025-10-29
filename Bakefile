@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export AUTH_PASSWORD=pannekoek
+
 serve() {
 	mix phx.server
 }

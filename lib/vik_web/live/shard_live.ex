@@ -32,7 +32,7 @@ defmodule VikWeb.ShardLive do
   end
 
   defp mount_shard(socket, shard) do
-    uid = socket.assigns.current_user # or: "#{socket.id}-collab"
+    uid = to_uid(socket.assigns.current_user) # or: "#{socket.id}-collab"
     participants = Presence.list_participants(shard.slug)
 
     if connected?(socket) do
@@ -221,7 +221,7 @@ defmodule VikWeb.ShardLive do
         id="source-code"
         field={f[:source_code]}
         suid={@shard.slug}
-        uid={@current_user}
+        uid={to_uid(@current_user)}
       />
 
       <div id="sidebar" class="flex flex-col gap-4">
@@ -359,4 +359,7 @@ defmodule VikWeb.ShardLive do
   defp plug_exposed?(~m{:Result, module}) do
     function_exported?(module, :__call__, 0)
   end
+
+  defp to_uid(name) when is_binary(name), do: name
+  defp to_uid(%{"displayname" => name}), do: name
 end

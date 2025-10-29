@@ -7,6 +7,37 @@ import Config
 # any compile-time configuration in here, as it won't be applied.
 # The block below contains prod specific runtime configuration.
 
+case System.get_env("AUTH_PROVIDER", "basic") do
+  "basic" ->
+    config :vik, auth: :basic
+    
+    if password = System.get_env("AUTH_PASSWORD") do
+      config :vik, password: password
+    else
+      raise """
+      The configured auth provider was set to 'basic', but no password
+      was configured. Either export AUTH_PASSWORD in the environment, or
+      set AUTH_PROVIDER to 'nym' instead.
+      """
+    end
+
+  "nym" ->
+    config :vik, auth: :nym
+
+    if endpoint = System.get_env("AUTH_ENDPOINT") do
+      config :nym, on: endpoint
+    else
+      raise """
+      The configured auth provider was set to 'nym', but no endpoint
+      was configured. Either export AUTH_ENDPOINT in the environment, or
+      set AUTH_PROVIDER to 'basic' instead.
+      """
+    end
+
+  provider ->
+    raise "Unknown auth provider '#{provider}'."
+end
+
 # ## Using releases
 #
 # If you use `mix release`, you need to explicitly enable the server
