@@ -1,4 +1,9 @@
-name: vik
-image: robinboers/vik
-registry: ghcr.io
-host: nov
+services:
+- name: vik
+  image: robinboers/vik
+  registry: ghcr.io
+  host: nov
+- name: fog
+  image: robinboers/vik
+  registry: ghcr.io
+  host: nov
