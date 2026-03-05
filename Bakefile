@@ -2,6 +2,11 @@
 
 export AUTH_PASSWORD=pannekoek
 
+setup() {
+	mix deps.get
+	mix ecto.setup
+}
+
 serve() {
 	mix phx.server
 }
