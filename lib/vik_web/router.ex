@@ -15,7 +15,7 @@ defmodule VikWeb.Router do
   end
 
   pipeline :api do
-    plug :accepts, ["json"]
+    plug :accepts, ["json", "ics"]
   end
 
   scope "/", VikWeb do
