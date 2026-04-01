@@ -8,4 +8,3 @@ services:
   type: static
   src: doc
   target: docs.dupunkto.org/vik
-

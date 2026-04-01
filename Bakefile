@@ -4,6 +4,7 @@ export AUTH_PASSWORD=pannekoek
 
 setup() {
 	mix deps.get
+	mix deps.compile
 	mix ecto.setup
 }
 
