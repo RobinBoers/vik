@@ -20,3 +20,7 @@ publish() {
 	mix docs
 	lift deploy docs
 }
+
+release() {
+	mix hex.publish
+}
