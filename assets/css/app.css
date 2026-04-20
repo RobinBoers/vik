@@ -1,107 +1,169 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+:root {
+  --erl: rgb(220, 38, 38);
+  --erl-fg: hsl(from var(--erl) h s calc(l + 20));
+  --erl-bg: rgba(from var(--erl) r g b / 20%);
+  --ex: rgb(147, 51, 234);
+  --ex-fg: hsl(from var(--ex) h s calc(l + 20));
+  --ex-bg: rgba(from var(--ex) r g b / 20%);
+  --phx: rgb(253, 79, 0);
+  --phx-fg: hsl(from var(--phx) h s calc(l + 20));
+  --phx-bg: rgba(from var(--phx) r g b / 20%);
+}
 
-@layer components {
-  #shard {
-    width: 100%;
-    height: 100%;
-    display: grid;
-    gap: 0.5em;
-    min-width: 0;
-    min-height: 0;
-    grid-template-columns: 1fr 350px;
-    grid-template-rows: minmax(0, 1fr) 200px;
-    grid-template-areas:
-      "editor sidebar"
-      "logs logs";
-  }
+.size-6 {
+  height: 1.5rem;
+  width: 1.5rem;
+}
 
-  #shard #code-wrapper {
-    grid-area: editor;
-  }
+.size-5 {
+  height: 1.25rem;
+  width: 1.25rem;
+}
 
-  #shard #sidebar {
-    grid-area: sidebar;
-  }
+.size-3 {
+  height: 0.75rem;
+  width: 0.75rem;
+}
 
-  #shard #logs {
-    grid-area: logs;
-  }
+body > header .group,
+body > [data-phx-main] > header .group {
+  gap: 1.25em;
+}
 
-  #shard.nologs {
-    grid-template-areas: "editor sidebar";
-    grid-template-rows: 1fr;
-  }
-  #shard.nologs #logs {
-    display: none;
-  }
+.badge {
+  font-size: 0.9em;
+  padding: 0 0.6rem;
+  border-radius: 999px;
+}
 
-  .codemirror {
-    flex: 1;
-    width: 100%;
-    height: 100%;
-    min-width: 0;
-    overflow: hidden;
-  }
+body > header .badges,
+body > [data-phx-main] > header .badges {
+  gap: 0.5em;
+}
 
-  .codemirror textarea,
-  .codemirror .target:not(:empty),
-  .codemirror .cm-editor {
-    width: 100%;
-    height: 100%;
-    font-size: 1.2rem;
-  }
+.group {
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  gap: 0.25em;
+  margin: 0;
+}
 
-  .codemirror textarea {
-    font-family: monospace;
-    line-height: 1.4;
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    resize: none;
-    border: 2px solid #e5e7eb;
-    border-radius: 7px;
-  }
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5em;
+}
 
-  .codemirror textarea:focus,
-  .codemirror .cm-focused {
-    outline: none;
-    box-shadow: none;
-    border: 1px dotted #212121;
-  }
-  
-  .codemirror .cm-editor {
-    padding: 0;
-    border-radius: 7px;
-    border-width: 1px;
-  }
+.stat {
+  background: light-dark(#f1f1f1, #2b2b33);
+  border-radius: 7px;
+  padding: 0.75em;
+  margin: 0;
+}
 
-  .codemirror .cm-line {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-  }
+.stat h3, .stat p {
+  margin: 0;
+}
 
-  .codemirror .cm-content {
-    padding-top: 0.5rem;
-    padding-bottom: 0.75rem;
-  }
+#shard {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  gap: 0.5em;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: 1fr 350px;
+  grid-template-rows: minmax(0, 1fr) 200px;
+  grid-template-areas:
+    "editor sidebar"
+    "logs logs";
+}
 
-  #shell input {
-    --tw-ring-color: transparent;
+#shard #code-wrapper {
+  grid-area: editor;
+}
 
-    font-family: monospace;
-    font-size: 1.5rem;
-    width: 100%;
-    border: 2px solid #e5e7eb;
-    border-top: none;
-    outline: none;
-    padding: 0.125rem 0.25rem;
-  }
+#shard #sidebar {
+  grid-area: sidebar;
+}
 
-  #shell input:focus {
-    border: 2px dotted #212121;
-  }
+#shard #logs {
+  grid-area: logs;
+}
+
+#shard.nologs {
+  grid-template-areas: "editor sidebar";
+  grid-template-rows: 1fr;
+}
+#shard.nologs #logs {
+  display: none;
+}
+
+.codemirror {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.codemirror textarea,
+.codemirror .target:not(:empty),
+.codemirror .cm-editor {
+  width: 100%;
+  height: 100%;
+  font-size: 1.2rem;
+}
+
+.codemirror textarea {
+  font-family: monospace;
+  line-height: 1.4;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: 2px solid #e5e7eb;
+  border-radius: 7px;
+}
+
+.codemirror textarea:focus,
+.codemirror .cm-focused {
+  outline: none;
+  box-shadow: none;
+  border: 1px dotted #212121;
+}
+
+.codemirror .cm-editor {
+  padding: 0;
+  border-radius: 7px;
+  border-width: 1px;
+}
+
+.codemirror .cm-line {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.codemirror .cm-content {
+  padding-top: 0.5rem;
+  padding-bottom: 0.75rem;
+}
+
+#shell input {
+  --tw-ring-color: transparent;
+
+  font-family: monospace;
+  font-size: 1.5rem;
+  width: 100%;
+  border: 2px solid #e5e7eb;
+  border-top: none;
+  outline: none;
+  padding: 0.125rem 0.25rem;
+}
+
+#shell input:focus {
+  border: 2px dotted #212121;
 }
 
 /* Hacks to make my JS hacks work :) */
@@ -120,4 +182,25 @@ body > div {
 }
 body > div > main {
   @apply flex-grow overflow-hidden;
+}
+
+.erl {
+  color: var(--erl-fg);
+  background: var(--erl-bg);
+}
+
+.ex {
+  color: var(--ex-fg);
+  background: var(--ex-bg);
+}
+
+.phx {
+  color: var(--phx-fg);
+  background: var(--phx-bg);
+}
+
+.wide {
+  max-width: 100%;
+  margin: 0;
+  padding: 1.5em;
 }

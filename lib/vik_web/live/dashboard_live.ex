@@ -83,7 +83,7 @@ defmodule VikWeb.DashboardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="px-4 py-2 space-y-10">
+    <main class="wide">
       <.system_info
         versions={@versions}
         usage={@usage}
@@ -91,15 +91,13 @@ defmodule VikWeb.DashboardLive do
         debug={assigns[:debug]}
       />
       
-      <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 grid-rows-[250px]">
-        <.shards_listing 
-          shards={@shards}
-          open={@open} 
-        />
-        <.system_limits usage={@usage} limits={@limits} />
-        <.memory_usage usage={@usage} />
-      </div>
-    </div>
+      <.shards_listing 
+        shards={@shards}
+        open={@open} 
+      />
+      <.system_limits usage={@usage} limits={@limits} />
+      <.memory_usage usage={@usage} />
+    </main>
     """
   end
 
@@ -111,11 +109,11 @@ defmodule VikWeb.DashboardLive do
   defp system_info(assigns) do
     ~H"""
     <section>
-      <h2 class="sr-only">System information</h2>
-      <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 mb-4">
-        <.card title="Erlang" value={@versions.erlang} class="bg-red-600/5 text-red-600" />
-        <.card title="Elixir" value={@versions.elixir} class="bg-purple-600/5 text-purple-600" />
-        <.card title="Phoenix" value={@versions.phoenix} class="bg-[#FD4F00]/5 text-[#FD4F00]" />
+      <h2 hidden>System information</h2>
+      <div class="stats">
+        <.card title="Erlang" value={@versions.erlang} class="erl" />
+        <.card title="Elixir" value={@versions.elixir} class="ex" />
+        <.card title="Phoenix" value={@versions.phoenix} class="phx" />
         <.card title="Uptime" value={format_uptime(@usage.uptime)} />
         <.card title="Network in" value={@usage.io |> elem(0) |> format_bytes()} />
         <.card title="Network out" value={@usage.io |> elem(1) |> format_bytes()} />
@@ -301,10 +299,10 @@ defmodule VikWeb.DashboardLive do
 
   defp card(assigns) do
     ~H"""
-    <div class={["shadow p-4 rounded-md flex flex-col justify-center", @rest[:class]]} {@rest}>
-      <h3 class="text-lg">{@title}</h3>
-      <p class="font-bold text-4xl mb-6">{@value}</p>
-    </div>
+    <hgroup class={["stat", @rest[:class]]} {@rest}>
+      <h3>{@title}</h3>
+      <p>{@value}</p>
+    </hgroup>
     """
   end
 
@@ -352,9 +350,9 @@ defmodule VikWeb.DashboardLive do
     {d, {h, m, _s}} = :calendar.seconds_to_daystime(div(uptime, 1000))
 
     cond do
-      d > 0 -> "#{d}d#{h}h#{m}m"
-      h > 0 -> "#{h}h#{m}m"
-      true -> "#{m}m"
+      d > 0 -> "#{d}d#{h}h#{m}min"
+      h > 0 -> "#{h}h#{m}min"
+      true -> "#{m}min"
     end
   end
 
@@ -372,7 +370,7 @@ defmodule VikWeb.DashboardLive do
 
   defp format_bytes(bytes, unit) when is_integer(bytes) do
     value = bytes / memory_unit(unit)
-    "#{:erlang.float_to_binary(value, decimals: 1)} #{unit}"
+    "#{:erlang.float_to_binary(value, decimals: 1)}#{unit}"
   end
 
   defp memory_unit(:TB), do: 1024 * 1024 * 1024 * 1024

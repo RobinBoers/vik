@@ -1,39 +1,23 @@
-<header class="px-4 sm:px-6 lg:px-8">
-  <div class="flex items-center justify-between border-b border-zinc-100 py-3 text-sm">
-    <div class="flex items-center gap-5">
-      <.link navigate={~p"/"}>
-        <span class="font-bold text-xl">Vik</span>
-        <span class="font-medium ml-2">v{@versions.app}</span>
-      </.link>
-      <div :if={@socket.view != VikWeb.HomeLive} class="flex items-center gap-2 lowercase">
-        <p class="bg-red-600/5 text-red-600 rounded-full px-2 font-medium leading-6">
-          <span class="hidden sm:inline">erlang</span> v{@versions.erlang}
-        </p>
-        <p class="bg-purple-600/5 text-purple-600 rounded-full px-2 font-medium leading-6">
-          <span class="hidden sm:inline">Elixir</span> v{@versions.elixir}
-        </p>
-        <p class="bg-[#FD4F00]/5 text-[#FD4F00] rounded-full px-2 font-medium leading-6">
-          <span class="hidden sm:inline">Phoenix</span> v{@versions.phoenix}
-        </p>
-      </div>
-    </div>
-    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
-      <.link navigate={~p"/shell"}>
-        Shell
-      </.link>
-      <.link navigate={~p"/log"}>
-        Logs
-      </.link>
-      <.link
-        navigate={~p"/new"}
-        class="rounded-lg bg-zinc-100 px-2 py-1 hover:bg-zinc-200/80 flex items-center gap-1"
-      >
-        <.icon name="hero-plus" class="!size-3" /> New
-      </.link>
+<header>
+  <div class="group">
+    <h1><.link navigate={~p"/"}>Vik <small>v{@versions.app}</small></.link></h1>
+    <div :if={@socket.view != VikWeb.HomeLive} class="group badges">
+      <span class="badge erl">
+        Erlang v{@versions.erlang}
+      </span>
+      <span class="badge ex">
+        Elixir v{@versions.elixir}
+      </span>
+      <span class="badge phx">
+        Phoenix v{@versions.phoenix}
+      </span>
     </div>
   </div>
+  <nav class="group">
+    <.link navigate={~p"/shell"}>Shell</.link>
+    <.link navigate={~p"/log"}>Logs</.link>
+    <.link navigate={~p"/new"}>New <.icon name="hero-plus" class="size-3" /></.link>
+  </nav>
 </header>
-<main class={"p-3 md:px-6 #{@socket.view == VikWeb.HomeLive && "overflow-visible"}"}>
-  <.flash_group flash={@flash} />
-  {@inner_content}
-</main>
+<.flash_group flash={@flash} />
+{@inner_content}
