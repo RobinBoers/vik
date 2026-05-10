@@ -8,12 +8,12 @@ defmodule VikWeb.DashboardLive do
   alias Vik.PubSub
 
   @memory_usage_sections [
-    {:atom, "Atoms", "bg-green-500/85"},
-    {:binary, "Binary", "bg-blue-500/85"},
-    {:code, "Code", "bg-purple-500/85"},
-    {:ets, "ETS", "bg-yellow-500/85"},
-    {:process, "Processes", "bg-orange-500/85"},
-    {:other, "Other", "bg-gray-700/85"}
+    {:atom, "Atoms", "#22C55ED9"},
+    {:binary, "Binary", "#3B82F6D9"},
+    {:code, "Code", "#A855F7D9"},
+    {:ets, "ETS", "#EAB308D9"},
+    {:process, "Processes", "#F97316D9"},
+    {:other, "Other", "#374151D9"}
   ]
 
   import Ecto.Query
@@ -23,7 +23,7 @@ defmodule VikWeb.DashboardLive do
   @impl true
   def mount(_params, _session, socket) do
     PubSub.subscribe("vik:dashboard")
-    {:ok, assign(socket, shards: load_shards(), open: MapSet.new())}
+    {:ok, assign(socket, shards: load_shards())}
   end
 
   @impl true
@@ -91,12 +91,11 @@ defmodule VikWeb.DashboardLive do
         debug={assigns[:debug]}
       />
       
-      <.shards_listing 
-        shards={@shards}
-        open={@open} 
-      />
-      <.system_limits usage={@usage} limits={@limits} />
-      <.memory_usage usage={@usage} />
+      <div id="dashboard">
+        <.shards_listing shards={@shards} />
+        <.system_limits usage={@usage} limits={@limits} />
+        <.memory_usage usage={@usage} />
+      </div>
     </main>
     """
   end
@@ -129,116 +128,39 @@ defmodule VikWeb.DashboardLive do
   end
 
   attr :shards, :map, required: true
-  attr :open, :any, required: true
 
   defp shards_listing(assigns) do
     ~H"""
     <section class="row-span-2">
       <h2 class="font-bold text-2xl ml-1.5 mb-6">Shards</h2>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left whitespace-nowrap">
-          <colgroup>
-            <col class="w-full lg:w-4/8" />
-            <col class="lg:w-1/8" />
-            <col class="lg:w-3/8" />
-          </colgroup>
-          <thead class="border-b border-zinc-900/10 text-sm/6">
-            <tr>
-              <th scope="col" class="py-2 pr-8 font-semibold pl-4">Title</th>
-              <th scope="col" class="py-2 pr-4 pl-0 text-right font-semibold sm:pr-8 lg:pr-20">Status</th>
-              <th scope="col" class="hidden py-2 pl-0 text-right font-semibold sm:table-cell pr-4">Deployed at</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-zinc-900/5">
-            <tr
-              :for={{shard, status} <- Map.get(@shards, :flat, [])}
-              phx-click={JS.navigate(~p"/#{shard.slug}")}
-              class="hover:bg-zinc-50 cursor-pointer"
-            >
-              <td class="py-4 pr-8">
-                <h2 class="px-4">{shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span></h2>
-              </td>
-              <td class="py-4 pr-4 pl-0 text-sm/6 sm:pr-8 lg:pr-20">
-                <div class="flex items-center justify-end gap-x-2">
-                  <div class={"flex-none rounded-full p-1 #{dot_color(status)}"}>
-                    <div class="size-1.5 rounded-full bg-current"></div>
-                  </div>
-                </div>
-              </td>
-              <td class="hidden py-4 pl-0 text-right text-sm/6 text-gray-400 sm:table-cell">
-                <time class="px-4" datetime={shard.updated_at}>{Vik.Dates.humanize(shard.updated_at)}</time>
-              </td>
-            </tr>
-            <tr :for={{{:group, group}, group_shards} <- assigns.shards} class="group">
-              <td colspan="3" class="py-0">
-                <div class={["border border-transparent", MapSet.member?(@open, group) && "rounded overflow-hidden my-1 !border-zinc-200"]}>
-                  <div 
-                    phx-click="toggle_group" 
-                    phx-value-group={group}
-                    class={["flex items-center justify-between gap-2 py-4 px-4 hover:bg-zinc-50 cursor-pointer", MapSet.member?(@open, group) && "!h-full bg-zinc-50 hover:!bg-zinc-100 border-b border-zinc-200 !py-3"]}
-                  >
-                    <span>
-                      <%= case List.first(group_shards) do
-                        {%{slug: ^group}, _} -> List.first(group_shards) |> elem(0) |> Map.get(:title)
-                        _ -> String.capitalize(group)
-                      end %>
-                      <span class="text-xs font-mono text-zinc-400 pl-1">//{length(group_shards)}</span>
-                    </span>
-                    <svg :if={not MapSet.member?(@open, group)} class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                    <svg :if={MapSet.member?(@open, group)} class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                  </div>
-                  <table :if={MapSet.member?(@open, group)} class="w-full">
-                    <colgroup>
-                      <col class="w-full lg:w-4/8" />
-                      <col class="lg:w-1/8" />
-                      <col class="lg:w-3/8" />
-                    </colgroup>
-                    <tr
-                      :for={{shard, status} <- group_shards}
-                      phx-click={JS.navigate(~p"/#{shard.slug}")} 
-                      class="hover:bg-zinc-50 cursor-pointer border-b border-zinc-900/5"
-                    >
-                      <td class="py-2 pr-8">
-                        <h2 class="px-4">{shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span></h2>
-                      </td>
-                      <td class="py-2 pr-3 pl-0 text-sm/6 sm:pr-4 lg:pr-16">
-                        <div class="flex items-center justify-end gap-x-2">
-                          <div class={"flex-none rounded-full p-1 #{dot_color(status)}"}>
-                            <div class="size-1.5 rounded-full bg-current"></div>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="hidden py-2 pl-0 text-right text-sm/6 text-gray-400 sm:table-cell">
-                        <time class="px-4" datetime={shard.updated_at}>{Vik.Dates.humanize(shard.updated_at)}</time>
-                      </td>
-                    </tr>
-                  </table>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <ul>
+        <li :for={{shard, status} <- Map.get(@shards, :flat, [])}>
+          <.link navigate={~p"/#{shard.slug}"}>
+            {shard.title} <small>({shard.slug})</small>
+            <span class="dot" style={"color: #{dot_color(status)}"}></span>
+            <time datetime={shard.updated_at}>{Vik.Dates.humanize(shard.updated_at)}</time>
+          </.link>
+        </li>
+      </ul>
+      <div :for={{{:group, group}, group_shards} <- assigns.shards}>
+        <h3>
+          <%= case List.first(group_shards) do
+            {%{slug: ^group}, _} -> List.first(group_shards) |> elem(0) |> Map.get(:title)
+            _ -> String.capitalize(group)
+          end %> <small>({length(group_shards)})</small>
+        </h3>
+        <ul>
+          <li :for={{shard, status} <- group_shards}>
+            <.link navigate={~p"/#{shard.slug}"}>
+              {shard.title} <small>({shard.slug})</small>
+              <span class="dot" style={"color: #{dot_color(status)}"}></span>
+              <time datetime={shard.updated_at}>{Vik.Dates.humanize(shard.updated_at)}</time>
+            </.link>
+          </li>
+        </ul>
       </div>
     </section>
     """
-  end
-
-  @impl true
-  def handle_event("toggle_group", %{"group" => group}, socket) do
-    open = toggle_group(socket.assigns.open, group)
-    {:noreply, assign(socket, :open, open)}
-  end
-  
-  defp toggle_group(open, group) do
-    if MapSet.member?(open, group) do
-      MapSet.delete(open, group)
-    else
-      MapSet.put(open, group)
-    end
   end
 
   attr :usage, :map, required: true
@@ -247,15 +169,13 @@ defmodule VikWeb.DashboardLive do
   defp system_limits(assigns) do
     ~H"""
     <section>
-      <h2 class="font-bold text-2xl mb-6">System limits</h2>
-      <div class="mb-8">
-        <.usage
-          :for={type <- [:atoms, :ports, :processes]}
-          title={Phoenix.Naming.humanize(type)}
-          current={@usage[type]}
-          limit={@limits[type]}
-        />
-      </div>
+      <h2>System limits</h2>
+      <.limit_usage
+        :for={type <- [:atoms, :ports, :processes]}
+        title={Phoenix.Naming.humanize(type)}
+        current={@usage[type]}
+        limit={@limits[type]}
+      />
     </section>
     """
   end
@@ -265,29 +185,27 @@ defmodule VikWeb.DashboardLive do
   defp memory_usage(assigns) do
     ~H"""
     <section>
-      <h2 class="font-bold text-2xl mb-6">Memory</h2>
-      <div class="space-y-5">
-        <div class="w-full h-6 flex rounded overflow-hidden">
-          <div
-            :for={{name, value, color} <- calculate_memory_usage(@usage.memory)}
-            class={["h-full", color]}
-            style={"width: #{value / @usage.memory.total * 100}%"}
-            title={"#{name}: #{format_bytes(value)}"}
-          ></div>
-        </div>
+      <h2>Memory</h2>
+      <div class="line-chart">
+        <div
+          :for={{name, value, color} <- calculate_memory_usage(@usage.memory)}
+          class="segment"
+          style={"color: #{color}; width: #{value / @usage.memory.total * 100}%"}
+          title={"#{name}: #{format_bytes(value)}"}
+        ></div>
+      </div>
 
-        <div class="grid grid-cols-2 grid-rows-3 grid-flow-col gap-x-4">
-          <p
-            :for={{name, value, color} <- calculate_memory_usage(@usage.memory)}
-            class="flex items-center gap-2 justify-between"
-          >
-            <span class="flex items-center gap-2">
-              <span class={["size-4 block rounded", color]}></span>
-              <span>{name}</span>
-            </span>
-            <span class="text-xs text-zinc-400">{format_bytes(value)}</span>
-          </p>
-        </div>
+      <div class="legend">
+        <p
+          :for={{name, value, color} <- calculate_memory_usage(@usage.memory)}
+          class="split"
+        >
+          <span>
+            <span class="square" style={"color: #{color}"}></span>
+            {name}
+          </span>
+          <span>{format_bytes(value)}</span>
+        </p>
       </div>
     </section>
     """
@@ -310,21 +228,15 @@ defmodule VikWeb.DashboardLive do
   attr :current, :integer, required: true
   attr :limit, :integer, required: true
 
-  defp usage(assigns) do
+  defp limit_usage(assigns) do
     ~H"""
-    <div class="mb-1 flex gap-2 items-center justify-between">
-      <span class="flex gap-2 items-center">
-        <h4 class="font-semibold text-md">{@title}</h4>
-        <span class="text-xs text-zinc-400">({@current} / {@limit})</span>
-      </span>
-
-      <span class="font-bold text-md">{format_percentage(@current, @limit)}%</span>
-    </div>
-    <div class="flex gap-2 items-center mb-3">
-      <progress class="flex-grow" max={@limit} value={@current}>
-        {format_percentage(@current, @limit)}%
-      </progress>
-    </div>
+    <p class="split">
+      <span><b>{@title}</b> <small>({@current} / {@limit})</small></span>
+      <span>{format_percentage(@current, @limit)}%</span>
+    </p>
+    <progress max={@limit} value={@current}>
+      {format_percentage(@current, @limit)}%
+    </progress>
     """
   end
 
@@ -378,7 +290,7 @@ defmodule VikWeb.DashboardLive do
   defp memory_unit(:MB), do: 1024 * 1024
   defp memory_unit(:KB), do: 1024
 
-  def dot_color(:stale), do: "bg-amber-400/10 text-amber-400"
-  def dot_color(:up), do: "bg-green-400/10 text-green-400"
-  def dot_color(:down), do: "bg-red-400/10 text-red-400"
+  def dot_color(:stale), do: "#fbbf24"
+  def dot_color(:up), do: "#4ade80"
+  def dot_color(:down), do: "#f87171"
 end
