@@ -35,7 +35,7 @@ import { lintKeymap } from "@codemirror/lint";
 import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 
 import { elixir } from "codemirror-lang-elixir";
-import { espresso } from "thememirror";
+import { boysAndGirls, espresso } from "thememirror";
 
 import { createPeer } from "./collab";
 import { cursorExtension } from "./cursors";
@@ -68,6 +68,9 @@ export const Hook = {
       indentWithTab,
     ];
 
+    const theme = matchMedia("(prefers-color-scheme: dark)").matches
+      ? boysAndGirls : espresso;
+
     const extensions = [
       highlightSpecialChars(),
       history(),
@@ -84,7 +87,7 @@ export const Hook = {
       highlightSelectionMatches(),
       keymap.of(keymapping),
       elixir(),
-      espresso,
+      theme,
     ];
 
     // ughh, i don't like var but this is literally what var was
