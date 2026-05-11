@@ -8,7 +8,7 @@ defmodule Vik.MixProject do
     [
       name: "Vik",
       app: :vik,
-      version: "0.0.1-rc1",
+      version: "0.0.1-rc2",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
