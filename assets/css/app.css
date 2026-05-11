@@ -369,6 +369,7 @@ input.has-error {
 .terminal .line {
   white-space: pre-wrap;
   padding: 0.5rem;
+  margin: 0;
 }
 
 .terminal .line:empty {
