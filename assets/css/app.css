@@ -401,6 +401,7 @@ input.has-error {
 }
 
 .codemirror textarea {
+  padding: 7px .75rem;
   font-family: monospace;
   line-height: 1.4;
   margin: 0;
