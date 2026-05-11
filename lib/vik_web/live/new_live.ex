@@ -42,12 +42,12 @@ defmodule VikWeb.NewLive do
         <p>A shard is a snippet of Elixir source code that can be exposed as a plug.</p>
       </hgroup>
 
-      <.form for={@form} phx-change="validate" phx-submit="create" class="space-y-4">
+      <.form for={@form} phx-change="validate" phx-submit="create">
         <.input type="text" field={@form[:title]} label="Title" />
         <.input type="text" field={@form[:slug]} label="Slug" />
         <.input type="hidden" field={@form[:source_code]} />
 
-        <.button class="float-right" phx-disable-with="Creating...">Create shard</.button>
+        <.button phx-disable-with="Creating...">Create shard</.button>
       </.form>
     </main>
     """

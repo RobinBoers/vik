@@ -227,7 +227,7 @@ defmodule VikWeb.ShardLive do
 
         <div id="sidebar">
           <header class="bar">
-            <h2 class="font-bold text-2xl ml-2">{@shard.title} <span class="dot" style={"color: #{dot_color(@status)}"}></span></h2>
+            <h2>{@shard.title} <span class="dot" style={"color: #{dot_color(@status)}"}></span></h2>
             <a
               :if={plug_exposed?(@compiled)}
               href={"/api/#{@shard.slug}"}
@@ -265,7 +265,7 @@ defmodule VikWeb.ShardLive do
             <ul>
               <li :for={%Shard{} = shard <- @dependencies}>
                 <.link navigate={~p"/#{shard.slug}"}>
-                  {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
+                  {shard.title} <small>({shard.slug})</small>
                 </.link>
               </li>
             </ul>
@@ -276,7 +276,7 @@ defmodule VikWeb.ShardLive do
             <ul>
               <li :for={%Shard{} = shard <- @dependents}>
                 <.link navigate={~p"/#{shard.slug}"}>
-                  {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
+                  {shard.title} <small>({shard.slug})</small>
                 </.link>
               </li>
             </ul>
@@ -287,7 +287,7 @@ defmodule VikWeb.ShardLive do
             <ul>
               <li :for={%Shard{} = shard <- @group}>
                 <.link navigate={~p"/#{shard.slug}"}>
-                  {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
+                  {shard.title} <small>({shard.slug})</small>
                 </.link>
               </li>
             </ul>
@@ -295,12 +295,10 @@ defmodule VikWeb.ShardLive do
 
           <div class="box collab">
             <h3 >Collaboration session</h3>
-            <ul id="participants" phx-update="stream" class="flex items-center gap-1">
+            <ul id="participants" phx-update="stream">
               <li :for={{dom_id, p} <- @streams.participants} id={dom_id} title={p.name}>
-                <span class={"inline-flex size-10 items-center justify-center rounded-full #{random_color(p.id)}"}>
-                  <span class="font-medium text-white cursor-default">
-                    {initials(p.name)}<small :if={length(p.metas) > 1} class="text-[10px]">+{length(p.metas) - 1}</small>
-                  </span>
+                <span class="avatar" style={"background: #{random_color(p.id)}"}>
+                  {initials(p.name)}<small :if={length(p.metas) > 1}>+{length(p.metas) - 1}</small>
                 </span>
               </li>
             </ul>
@@ -314,14 +312,14 @@ defmodule VikWeb.ShardLive do
   end
 
   @colors [
-    "bg-amber-500",
-    "bg-teal-500",
-    "bg-cyan-600",
-    "bg-indigo-400",
-    "bg-violet-500",
-    "bg-red-400",
-    "bg-pink-400",
-    "bg-rose-400",
+    "#f59e0b",
+    "#14b8a6",
+    "#0891b2",
+    "#818cf8",
+    "#8b5cf6",
+    "#f87171",
+    "#f472b6",
+    "#fb7185",
   ]
 
   defp random_color(uid) do

@@ -119,7 +119,7 @@ defmodule VikWeb.DashboardLive do
         <.card title="Memory" value={format_bytes(@usage.memory.total)} />
       </div>
 
-      <p :if={@debug} class="flex justify-between">
+      <p :if={@debug} class="split">
         <code>{extract_flags(@info.banner)}</code>
         <code>[{@info.architecture}]</code>
       </p>
@@ -131,7 +131,7 @@ defmodule VikWeb.DashboardLive do
 
   defp shards_listing(assigns) do
     ~H"""
-    <section class="row-span-2">
+    <section>
       <header class="bar">
         <h2>Shards</h2>
         <.link class="button" navigate={~p"/new"}>New shard</.link>
