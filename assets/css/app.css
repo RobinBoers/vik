@@ -362,7 +362,7 @@ input.has-error {
 .terminal {
   font-family: monospace;
   overflow: auto;
-  background-color: light-dark(#f4f4f5, #363640);
+  background-color: light-dark(#f4f4f5, #000205);
   flex-grow: 1;
 }
 
@@ -377,7 +377,7 @@ input.has-error {
 }
 
 .terminal .line:hover {
-  background-color: #fafafa;
+  background-color: light-dark(#fafafa, #121115);
 }
 
 .codemirror {
