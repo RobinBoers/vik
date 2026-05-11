@@ -169,6 +169,7 @@ ul li time {
 
 #shard #sidebar {
   grid-area: sidebar;
+  overflow-y: auto;
 }
 
 #shard #logs {
