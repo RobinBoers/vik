@@ -198,7 +198,7 @@ ul li time {
 
 #shard .box {
   padding: 0.5rem;
-  background-color: #f4f4f5d9;
+  background-color: light-dark(#f4f4f5d9, #25252c);
   margin: 0.5em 0;
 }
 
@@ -246,14 +246,14 @@ ul li time {
   font-family: monospace;
   font-size: 1.5rem;
   width: 100%;
-  border: 2px solid #e5e7eb;
+  border: 2px solid light-dark(#f4f4f5, #2b2a33);
   border-top: none;
   outline: none;
   padding: 0.125rem 0.25rem;
 }
 
 #shell input:focus {
-  border: 2px dotted #212121;
+  border: 2px dotted light-dark(#212121, #e5e7eb);
 }
 
 /* Forms */
@@ -362,7 +362,7 @@ input.has-error {
 .terminal {
   font-family: monospace;
   overflow: auto;
-  background-color: #f4f4f5;
+  background-color: light-dark(#f4f4f5, #363640);
   flex-grow: 1;
 }
 
@@ -397,7 +397,7 @@ input.has-error {
 }
 
 .codemirror .cm-editor {
-  border: 1px solid #e5e7eb;
+  border: 1px solid light-dark(#e5e7eb, #2b2a33);
 }
 
 .codemirror textarea {
@@ -407,14 +407,14 @@ input.has-error {
   width: 100%;
   height: 100%;
   resize: none;
-  border: 2px solid #e5e7eb;
+  border: 2px solid light-dark(#e5e7eb, #2b2a33);
 }
 
 .codemirror textarea:focus,
 .codemirror .cm-focused {
   outline: none;
   box-shadow: none;
-  border: 1px dotted #212121;
+  border: 1px dotted light-dark(#212121, #e5e7eb);
 }
 
 .codemirror .cm-editor {
