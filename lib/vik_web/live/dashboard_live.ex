@@ -132,7 +132,10 @@ defmodule VikWeb.DashboardLive do
   defp shards_listing(assigns) do
     ~H"""
     <section class="row-span-2">
-      <h2 class="font-bold text-2xl ml-1.5 mb-6">Shards</h2>
+      <header class="bar">
+        <h2>Shards</h2>
+        <.link class="button" navigate={~p"/new"}>New shard</.link>
+      </header>
       <ul>
         <li :for={{shard, status} <- Map.get(@shards, :flat, [])}>
           <.link navigate={~p"/#{shard.slug}"}>

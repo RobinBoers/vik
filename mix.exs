@@ -73,7 +73,7 @@ defmodule Vik.MixProject do
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
 
       # Useful in Shards
-      {:wallaby, "~> 0.30.0"},
+      # {:wallaby, "~> 0.30.0"},
       {:nimble_csv, "~> 1.3"},
       {:nimble_options, "~> 1.1"}
     ]

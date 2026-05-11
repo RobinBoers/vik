@@ -6,6 +6,7 @@ defmodule VikWeb.NewLive do
   alias Vik.Shard
   alias Vik.PubSub
 
+  on_mount VikWeb.Auth
   on_mount {VikWeb.SystemHandler, :static}
 
   @impl true
@@ -35,9 +36,11 @@ defmodule VikWeb.NewLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="mx-auto max-w-xl px-4 py-8">
-      <h1 class="font-bold text-2xl mb-1">Create a new shard</h1>
-      <p class="text-zinc-500 mb-7">A shard is a snippet of Elixir source code that can be exposed as a plug.</p>
+    <main>
+      <hgroup>
+        <h1>Create a new shard</h1>
+        <p>A shard is a snippet of Elixir source code that can be exposed as a plug.</p>
+      </hgroup>
 
       <.form for={@form} phx-change="validate" phx-submit="create" class="space-y-4">
         <.input type="text" field={@form[:title]} label="Title" />
@@ -46,7 +49,7 @@ defmodule VikWeb.NewLive do
 
         <.button class="float-right" phx-disable-with="Creating...">Create shard</.button>
       </.form>
-    </div>
+    </main>
     """
   end
 end

@@ -10,6 +10,19 @@
   --phx-bg: rgba(from var(--phx) r g b / 20%);
 }
 
+@media (prefers-color-scheme: light) {
+  .stats {
+    --erl-fg: hsl(from var(--erl) h s calc(l - 10));
+    --ex-fg: hsl(from var(--ex) h s calc(l - 10));
+    --phx-fg: hsl(from var(--phx) h s calc(l - 10));
+  }
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
 .size-6 {
   height: 1.5rem;
   width: 1.5rem;
@@ -61,6 +74,7 @@ body > [data-phx-main] > header .badges {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 0.5em;
+  margin-bottom: 1.5em;
 }
 
 .stat {
@@ -76,7 +90,8 @@ body > [data-phx-main] > header .badges {
 
 #dashboard {
   display: grid;
-  gap: 1rem;
+  row-gap: 1rem;
+  column-gap: 2rem;
   grid-template-columns: repeat(1, minmax(0, 1fr));
   grid-template-rows: 250px;
 }
@@ -91,17 +106,21 @@ body > [data-phx-main] > header .badges {
   grid-row: 1/3;
 }
 
+#dashboard > section:not(:first-of-type) h2 {
+  font-size: 1.25em;
+  margin-bottom: 0.4em;
+  margin-top: 0;
+}
+
 #dashboard h2 {
   border-bottom: none;
-  margin-bottom: 0.4em;
-  font-size: 1.25em;
 }
 
 #shard {
   width: 100%;
   height: 100%;
   display: grid;
-  gap: 0.5em;
+  gap: 0.75em;
   min-width: 0;
   min-height: 0;
   grid-template-columns: 1fr 350px;
@@ -147,6 +166,10 @@ body > [data-phx-main] > header .badges {
   font-size: 1.2rem;
 }
 
+.codemirror .cm-editor {
+  border: 1px solid #e5e7eb;
+}
+
 .codemirror textarea {
   font-family: monospace;
   line-height: 1.4;
@@ -155,7 +178,6 @@ body > [data-phx-main] > header .badges {
   height: 100%;
   resize: none;
   border: 2px solid #e5e7eb;
-  border-radius: 7px;
 }
 
 .codemirror textarea:focus,
@@ -167,7 +189,6 @@ body > [data-phx-main] > header .badges {
 
 .codemirror .cm-editor {
   padding: 0;
-  border-radius: 7px;
   border-width: 1px;
 }
 
@@ -182,8 +203,6 @@ body > [data-phx-main] > header .badges {
 }
 
 #shell input {
-  --tw-ring-color: transparent;
-
   font-family: monospace;
   font-size: 1.5rem;
   width: 100%;
@@ -206,13 +225,16 @@ body > [data-phx-main] > header .badges {
 /* Hacks to ensure my layout doesn't fuck itself up
    due to elements inserted by Phoenix LiveView. */
 html, body {
-  @apply h-full;
+  height: 100%;
 }
 body > div {
-  @apply h-full flex flex-col;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 body > div > main {
-  @apply flex-grow overflow-hidden;
+  flex-grow: 1;
+  overflow: hidden;
 }
 
 .erl {
@@ -334,4 +356,91 @@ progress {
   grid-auto-flow: column;
   column-gap: 1rem;
   margin: 1.5em 0;
+}
+
+.bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1em;
+  gap: 0.25em;
+}
+
+.bar h2,
+.bar h3 {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.terminal {
+  font-family: monospace;
+  overflow: auto;
+  background-color: #f4f4f5;
+  flex-grow: 1;
+}
+
+.terminal .line {
+  white-space: pre-wrap;
+  padding: 0.5rem;
+}
+
+.terminal .line:empty {
+  display: none;
+}
+
+.terminal .line:hover {
+  background-color: #fafafa;
+}
+
+.action-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4em;
+  width: 100%;
+}
+
+.box {
+  padding: 0.5rem;
+  background-color: #f4f4f5d9;
+  margin: 0.5em 0;
+}
+
+.box > :first-child {
+  margin-top: 0;
+}
+
+.box > :last-child {
+  margin-bottom: 0;
+}
+
+.box h3 {
+  margin-bottom: 0.5em;
+}
+
+.box p {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.box.collab {
+  display: none;
+}
+
+.box.collab:has(li:nth-child(2)) {
+  display: block;
+}
+
+.placeholder-text {
+  font-size: 0.9em;
+  opacity: 0.7;
+  text-align: center;
+}
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }

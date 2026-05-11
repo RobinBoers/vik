@@ -4,6 +4,7 @@ defmodule VikWeb.LogLive do
 
   alias Vik.Logger
 
+  on_mount VikWeb.Auth
   on_mount {VikWeb.SystemHandler, :static}
 
   @initial_lines 50
@@ -42,15 +43,17 @@ defmodule VikWeb.LogLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div
-      id="log"
-      class="flex flex-col h-full px-4 py-8"
-      phx-window-keydown="shortcut"
-      phx-throttle="500"
-    >
-      <h1 class="font-bold text-2xl mb-1">Logs</h1>
-      <.terminal id="logs" lines={@streams.logs} />
-    </div>
+    <main class="wide">
+      <div
+        id="log"
+        class="shell"
+        phx-window-keydown="shortcut"
+        phx-throttle="500"
+      >
+        <header class="bar"><h2>Logs</h2></header>
+        <.terminal id="logs" lines={@streams.logs} />
+      </div>
+    </main>
     """
   end
 
@@ -60,11 +63,11 @@ defmodule VikWeb.LogLive do
 
   def terminal(assigns) do
     ~H"""
-    <div id={@id} phx-update="stream" phx-hook={@scroll && "Scroll"} class="font-mono overflow-auto bg-zinc-100 flex-grow">
+    <div class="terminal" id={@id} phx-update="stream" phx-hook={@scroll && "Scroll"}>
       <pre
         :for={{dom_id, line} <- @lines}
         id={dom_id}
-        class="whitespace-pre-wrap p-2 empty:hidden hover:bg-zinc-50"
+        class="line"
       >{line}</pre>
     </div>
     """

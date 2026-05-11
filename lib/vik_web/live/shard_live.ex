@@ -199,119 +199,117 @@ defmodule VikWeb.ShardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.form
-      :let={f}
-      id="shard"
-      for={@changeset}
-      phx-submit={JS.push("submit", page_loading: true)}
-      phx-hook="SlowSubmit"
-    >
-      <style>
-        /* Hacks to prevent grid layouts overflowing */
-        main {   
-          display: flex;
-          flex-direction: column;
-        }
-        main > * {
-          width: 100%;
-        }
-      </style>
+    <main class="wide">
+      <.form
+        :let={f}
+        id="shard"
+        for={@changeset}
+        phx-submit={JS.push("submit", page_loading: true)}
+        phx-hook="SlowSubmit"
+      >
+        <style>
+          /* Hacks to prevent grid layouts overflowing */
+          main {   
+            display: flex;
+            flex-direction: column;
+          }
+          main > * {
+            width: 100%;
+          }
+        </style>
 
-      <.codemirror
-        id="source-code"
-        field={f[:source_code]}
-        suid={@shard.slug}
-        uid={to_uid(@current_user)}
-      />
+        <.codemirror
+          id="source-code"
+          field={f[:source_code]}
+          suid={@shard.slug}
+          uid={to_uid(@current_user)}
+        />
 
-      <div id="sidebar" class="flex flex-col gap-4">
-        <div class="flex items-center gap-2 -mb-1.5">
-          <h2 class="font-bold text-2xl ml-2">{@shard.title}</h2>
-          <div class={"flex-none rounded-full p-1 #{dot_color(@status)}"}>
-            <div class="size-1.5 rounded-full bg-current"></div>
+        <div id="sidebar">
+          <header class="bar">
+            <h2 class="font-bold text-2xl ml-2">{@shard.title} <span class="dot" style={"color: #{dot_color(@status)}"}></span></h2>
+            <a
+              :if={plug_exposed?(@compiled)}
+              href={"/api/#{@shard.slug}"}
+              target="_blank"
+              title="Open in new tab"
+              class="button"
+            >
+              <.icon name="hero-globe-alt" />
+            </a>
+          </header>
+          <div class="split">
+            <.button id="save" class="action-button" name="action" value="save">
+              <.icon name="hero-server" /> <span data-disable-with="Saving...">Save</span>
+            </.button>
+            <.button id="deploy" class="action-button" name="action" value="deploy">
+              <.icon name="hero-cloud" /> <span data-disable-with="Compiling...">Deploy</span>
+            </.button>
           </div>
-          <div class="flex-grow"></div>
-          <a
-            :if={plug_exposed?(@compiled)}
-            href={"/api/#{@shard.slug}"}
-            target="_blank"
-            title="Open in new tab"
-            class="rounded-full bg-gray-100 hover:bg-gray-200 -my-1 p-2 flex items-center justify-center"
-          >
-            <.icon name="hero-globe-alt" />
-          </a>
-        </div>
-        <div class="flex gap-1">
-          <.button id="save" class="flex-1 flex justify-center items-center gap-2" name="action" value="save">
-            <.icon name="hero-server" /> <span data-disable-with="Saving...">Save</span>
-          </.button>
-          <.button id="deploy" class="flex-1 flex justify-center items-center gap-2" name="action" value="deploy">
-            <.icon name="hero-cloud" /> <span data-disable-with="Compiling...">Deploy</span>
-          </.button>
-        </div>
-        <div :if={@compiled} class="p-2 rounded bg-zinc-100/85">
-          <h3 class="font-semibold text-lg mb-1">Exports</h3>
+          <div :if={@compiled} class="box">
+            <h3>Exports</h3>
 
-          <p :if={@compiled.exports == []} class="text-zinc-500">None</p>
+            <p :if={@compiled.exports == []} class="placeholder-text">None</p>
 
-          <ul>
-            <li :for={export <- @compiled.exports}>
-              <code>
-                {String.replace_prefix(format_export(export), to_string(@compiled.module) <> ".", "")}
-              </code>
-            </li>
-          </ul>
-        </div>
-        <div :if={length(@dependencies) >= 1} class="p-2 rounded bg-zinc-100/85">
-          <h3 class="font-semibold text-lg mb-1">Dependencies</h3>
+            <ul :if={@compiled.exports != []}>
+              <li :for={export <- @compiled.exports}>
+                <code>
+                  {String.replace_prefix(format_export(export), to_string(@compiled.module) <> ".", "")}
+                </code>
+              </li>
+            </ul>
+          </div>
+          <div :if={length(@dependencies) >= 1} class="box">
+            <h3>Dependencies</h3>
 
-          <ul>
-            <li :for={%Shard{} = shard <- @dependencies}>
-              <.link navigate={~p"/#{shard.slug}"}>
-                {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
-              </.link>
-            </li>
-          </ul>
-        </div>
-        <div :if={length(@dependents) >= 1} class="p-2 shadow rounded bg-zinc-100/85">
-          <h3 class="font-semibold text-lg mb-1">Dependents</h3>
+            <ul>
+              <li :for={%Shard{} = shard <- @dependencies}>
+                <.link navigate={~p"/#{shard.slug}"}>
+                  {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
+                </.link>
+              </li>
+            </ul>
+          </div>
+          <div :if={length(@dependents) >= 1} class="box">
+            <h3>Dependents</h3>
 
-          <ul>
-            <li :for={%Shard{} = shard <- @dependents}>
-              <.link navigate={~p"/#{shard.slug}"}>
-                {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
-              </.link>
-            </li>
-          </ul>
-        </div>
-        <div :if={length(@group) > 1} class="p-2 rounded bg-zinc-100/85">
-          <h3 class="font-semibold text-lg mb-1">Group</h3>
+            <ul>
+              <li :for={%Shard{} = shard <- @dependents}>
+                <.link navigate={~p"/#{shard.slug}"}>
+                  {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
+                </.link>
+              </li>
+            </ul>
+          </div>
+          <div :if={length(@group) > 1} class="box">
+            <h3>Group</h3>
 
-          <ul>
-            <li :for={%Shard{} = shard <- @group}>
-              <.link navigate={~p"/#{shard.slug}"}>
-                {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
-              </.link>
-            </li>
-          </ul>
-        </div>
+            <ul>
+              <li :for={%Shard{} = shard <- @group}>
+                <.link navigate={~p"/#{shard.slug}"}>
+                  {shard.title} <span class="text-xs font-mono text-zinc-400 pl-1">({shard.slug})</span>
+                </.link>
+              </li>
+            </ul>
+          </div>
 
-        <div class="hidden [&:has(li:nth-child(2))]:block">
-          <h3 class="font-semibold text-lg mb-1">Collaboration session</h3>
-          <ul id="participants" phx-update="stream" class="flex items-center gap-1">
-            <li :for={{dom_id, p} <- @streams.participants} id={dom_id} title={p.name}>
-              <span class={"inline-flex size-10 items-center justify-center rounded-full #{random_color(p.id)}"}>
-                <span class="font-medium text-white cursor-default">
-                  {initials(p.name)}<small :if={length(p.metas) > 1} class="text-[10px]">+{length(p.metas) - 1}</small>
+          <div class="box collab">
+            <h3 >Collaboration session</h3>
+            <ul id="participants" phx-update="stream" class="flex items-center gap-1">
+              <li :for={{dom_id, p} <- @streams.participants} id={dom_id} title={p.name}>
+                <span class={"inline-flex size-10 items-center justify-center rounded-full #{random_color(p.id)}"}>
+                  <span class="font-medium text-white cursor-default">
+                    {initials(p.name)}<small :if={length(p.metas) > 1} class="text-[10px]">+{length(p.metas) - 1}</small>
+                  </span>
                 </span>
-              </span>
-            </li>
-          </ul>
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
 
-      <.terminal id="logs" lines={@streams.logs} scroll />
-    </.form>
+        <.terminal id="logs" lines={@streams.logs} scroll />
+      </.form>
+    </main>
     """
   end
 
@@ -343,9 +341,9 @@ defmodule VikWeb.ShardLive do
     |> String.upcase()
   end
 
-  def dot_color(:stale), do: "bg-amber-400/10 text-amber-400"
-  def dot_color(:up), do: "bg-green-400/10 text-green-400"
-  def dot_color(:down), do: "bg-red-400/10 text-red-400"
+  def dot_color(:stale), do: "#fbbf24"
+  def dot_color(:up), do: "#4ade80"
+  def dot_color(:down), do: "#f87171"
 
   defp format_export(export) when is_atom(export) do
     to_string(export)

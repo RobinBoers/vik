@@ -6,6 +6,7 @@ defmodule VikWeb.ShellLive do
 
   import VikWeb.LogLive, only: [terminal: 1]
 
+  on_mount VikWeb.Auth
   on_mount {VikWeb.SystemHandler, :static}
 
   @impl true
@@ -83,16 +84,18 @@ defmodule VikWeb.ShellLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div
-      id="shell"
-      class="flex flex-col h-full px-4 py-8"
-      phx-window-keydown="shortcut"
-      phx-throttle="500"
-    >
-      <h1 class="font-bold text-2xl mb-1">Shell</h1>
-      <.terminal id="logs" lines={@streams.logs} scroll />
-      <input id="repl" phx-hook="Shell" type="text" name="source" autofocus autocomplete="off" />
-    </div>
+    <main class="wide">
+      <div
+        id="shell"
+        class="shell"
+        phx-window-keydown="shortcut"
+        phx-throttle="500"
+      >
+        <header class="bar"><h2>Shell</h2></header>
+        <.terminal id="logs" lines={@streams.logs} scroll />
+        <input id="repl" phx-hook="Shell" type="text" name="source" autofocus autocomplete="off" />
+      </div>
+    </main>
     """
   end
 end
