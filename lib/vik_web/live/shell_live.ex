@@ -87,7 +87,6 @@ defmodule VikWeb.ShellLive do
     <main class="wide">
       <div
         id="shell"
-        class="shell"
         phx-window-keydown="shortcut"
         phx-throttle="500"
       >

@@ -46,7 +46,6 @@ defmodule VikWeb.LogLive do
     <main class="wide">
       <div
         id="log"
-        class="shell"
         phx-window-keydown="shortcut"
         phx-throttle="500"
       >

@@ -1,41 +1,6 @@
-:root {
-  --erl: rgb(220, 38, 38);
-  --erl-fg: hsl(from var(--erl) h s calc(l + 20));
-  --erl-bg: rgba(from var(--erl) r g b / 20%);
-  --ex: rgb(147, 51, 234);
-  --ex-fg: hsl(from var(--ex) h s calc(l + 20));
-  --ex-bg: rgba(from var(--ex) r g b / 20%);
-  --phx: rgb(253, 79, 0);
-  --phx-fg: hsl(from var(--phx) h s calc(l + 20));
-  --phx-bg: rgba(from var(--phx) r g b / 20%);
-}
-
-@media (prefers-color-scheme: light) {
-  .stats {
-    --erl-fg: hsl(from var(--erl) h s calc(l - 10));
-    --ex-fg: hsl(from var(--ex) h s calc(l - 10));
-    --phx-fg: hsl(from var(--phx) h s calc(l - 10));
-  }
-}
-
 body {
   display: flex;
   flex-direction: column;
-}
-
-.size-6 {
-  height: 1.5rem;
-  width: 1.5rem;
-}
-
-.size-5 {
-  height: 1.25rem;
-  width: 1.25rem;
-}
-
-.size-3 {
-  height: 0.75rem;
-  width: 0.75rem;
 }
 
 body > header .group,
@@ -43,216 +8,12 @@ body > [data-phx-main] > header .group {
   gap: 1.25em;
 }
 
-.badge {
-  font-size: 0.9em;
-  padding: 0 0.6rem;
-  border-radius: 999px;
-}
-
 body > header .badges,
 body > [data-phx-main] > header .badges {
   gap: 0.5em;
 }
 
-.split {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: 0.25em;
-  margin: 0;
-}
-
-.group {
-  display: flex;
-  flex-direction: row;
-  justify-content: end;
-  gap: 0.25em;
-  margin: 0;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.5em;
-  margin-bottom: 1.5em;
-}
-
-.stat {
-  background: light-dark(#f1f1f1, #2b2b33);
-  border-radius: 7px;
-  padding: 0.75em;
-  margin: 0;
-}
-
-.stat h3, .stat p {
-  margin: 0;
-}
-
-#dashboard {
-  display: grid;
-  row-gap: 1rem;
-  column-gap: 2rem;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  grid-template-rows: 250px;
-}
-
-@media (min-width: 1024px) {
-  #dashboard {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-#dashboard > section:first-of-type {
-  grid-row: 1/3;
-}
-
-#dashboard > section:not(:first-of-type) h2 {
-  font-size: 1.25em;
-  margin-bottom: 0.4em;
-  margin-top: 0;
-}
-
-#dashboard h2 {
-  border-bottom: none;
-}
-
-#shard {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  gap: 0.75em;
-  min-width: 0;
-  min-height: 0;
-  grid-template-columns: 1fr 350px;
-  grid-template-rows: minmax(0, 1fr) 200px;
-  grid-template-areas:
-    "editor sidebar"
-    "logs logs";
-}
-
-#shard #code-wrapper {
-  grid-area: editor;
-}
-
-#shard #sidebar {
-  grid-area: sidebar;
-}
-
-#shard #logs {
-  grid-area: logs;
-}
-
-#shard.nologs {
-  grid-template-areas: "editor sidebar";
-  grid-template-rows: 1fr;
-}
-#shard.nologs #logs {
-  display: none;
-}
-
-.codemirror {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.codemirror textarea,
-.codemirror .target:not(:empty),
-.codemirror .cm-editor {
-  width: 100%;
-  height: 100%;
-  font-size: 1.2rem;
-}
-
-.codemirror .cm-editor {
-  border: 1px solid #e5e7eb;
-}
-
-.codemirror textarea {
-  font-family: monospace;
-  line-height: 1.4;
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  resize: none;
-  border: 2px solid #e5e7eb;
-}
-
-.codemirror textarea:focus,
-.codemirror .cm-focused {
-  outline: none;
-  box-shadow: none;
-  border: 1px dotted #212121;
-}
-
-.codemirror .cm-editor {
-  padding: 0;
-  border-width: 1px;
-}
-
-.codemirror .cm-line {
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
-}
-
-.codemirror .cm-content {
-  padding-top: 0.5rem;
-  padding-bottom: 0.75rem;
-}
-
-#shell input {
-  font-family: monospace;
-  font-size: 1.5rem;
-  width: 100%;
-  border: 2px solid #e5e7eb;
-  border-top: none;
-  outline: none;
-  padding: 0.125rem 0.25rem;
-}
-
-#shell input:focus {
-  border: 2px dotted #212121;
-}
-
-/* Hacks to make my JS hacks work :) */
-[data-submit-loading] [data-disable-with],
-[data-submit-loading] button:has([data-disable-with]) {
-  pointer-events: none;
-}
-
-/* Hacks to ensure my layout doesn't fuck itself up
-   due to elements inserted by Phoenix LiveView. */
-html, body {
-  height: 100%;
-}
-body > div {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-body > div > main {
-  flex-grow: 1;
-  overflow: hidden;
-}
-
-.erl {
-  color: var(--erl-fg);
-  background: var(--erl-bg);
-}
-
-.ex {
-  color: var(--ex-fg);
-  background: var(--ex-bg);
-}
-
-.phx {
-  color: var(--phx-fg);
-  background: var(--phx-bg);
-}
-
-.wide {
+main.wide {
   max-width: 100%;
   margin: 0;
   padding: 1.5em;
@@ -309,10 +70,222 @@ ul li time {
   opacity: .8;
 }
 
-progress {
+/* Dashboard */
+
+#dashboard {
+  display: grid;
+  row-gap: 1rem;
+  column-gap: 2rem;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  grid-template-rows: 250px;
+}
+
+@media (min-width: 1024px) {
+  #dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5em;
+  margin-bottom: 1.5em;
+}
+
+.stat {
+  background: light-dark(#f1f1f1, #2b2b33);
+  border-radius: 7px;
+  padding: 0.75em;
+  margin: 0;
+}
+
+.stat h3, .stat p {
+  margin: 0;
+}
+
+#dashboard > section:first-of-type {
+  grid-row: 1/3;
+}
+
+#dashboard > section:not(:first-of-type) h2 {
+  font-size: 1.25em;
+  margin-bottom: 0.4em;
+  margin-top: 0;
+}
+
+#dashboard h2 {
+  border-bottom: none;
+}
+
+#dashboard progress {
   width: 100%;
   margin-top: 5px;
   margin-bottom: 0.5em;
+}
+
+#dashboard .line-chart {
+  display: flex;
+  height: 1.5rem;
+  width: 100%;
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0.5em 5px;
+}
+
+#dashboard .line-chart .segment {
+  height: 100%;
+  background: currentColor;
+}
+
+#dashboard .legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  grid-auto-flow: column;
+  column-gap: 1rem;
+  margin: 1.5em 0;
+}
+
+/* Shards */
+
+#shard {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  gap: 0.75em;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: 1fr 350px;
+  grid-template-rows: minmax(0, 1fr) 200px;
+  grid-template-areas:
+    "editor sidebar"
+    "logs logs";
+}
+
+#shard #code-wrapper {
+  grid-area: editor;
+}
+
+#shard #sidebar {
+  grid-area: sidebar;
+}
+
+#shard #logs {
+  grid-area: logs;
+}
+
+#shard.nologs {
+  grid-template-areas: "editor sidebar";
+  grid-template-rows: 1fr;
+}
+#shard.nologs #logs {
+  display: none;
+}
+
+#shard .bar {
+  margin-bottom: 0.5em;
+}
+
+#shard .action-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4em;
+  width: 100%;
+}
+
+#shard .box {
+  padding: 0.5rem;
+  background-color: #f4f4f5d9;
+  margin: 0.5em 0;
+}
+
+#shard .box > :first-child {
+  margin-top: 0;
+}
+
+#shard .box > :last-child {
+  margin-bottom: 0;
+}
+
+#shard .box h3 {
+  margin-bottom: 0.5em;
+}
+
+#shard .box p {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+#shard .box.collab {
+  display: none;
+}
+
+#shard .box.collab:has(li:nth-child(2)) {
+  display: block;
+}
+
+/* Shell & log */
+
+#shell, #log {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#shell input {
+  font-family: monospace;
+  font-size: 1.5rem;
+  width: 100%;
+  border: 2px solid #e5e7eb;
+  border-top: none;
+  outline: none;
+  padding: 0.125rem 0.25rem;
+}
+
+#shell input:focus {
+  border: 2px dotted #212121;
+}
+
+/* Reusable components */
+
+.bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1em;
+  gap: 0.25em;
+}
+
+.bar h2,
+.bar h3 {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.split {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 0.25em;
+  margin: 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  gap: 0.25em;
+  margin: 0;
+}
+
+.badge {
+  font-size: 0.9em;
+  padding: 0 0.6rem;
+  border-radius: 999px;
 }
 
 .dot, .square {
@@ -335,43 +308,10 @@ progress {
   border-radius: 2px;
 }
 
-.line-chart {
-  display: flex;
-  height: 1.5rem;
-  width: 100%;
-  border-radius: 2px;
-  overflow: hidden;
-  margin: 0.5em 5px;
-}
-
-.line-chart .segment {
-  height: 100%;
-  background: currentColor;
-}
-
-.legend {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(3, minmax(0, 1fr));
-  grid-auto-flow: column;
-  column-gap: 1rem;
-  margin: 1.5em 0;
-}
-
-.bar {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1em;
-  gap: 0.25em;
-}
-
-.bar h2,
-.bar h3 {
-  margin: 0;
-  padding: 0;
-  border: none;
+.placeholder-text {
+  font-size: 0.9em;
+  opacity: 0.7;
+  text-align: center;
 }
 
 .terminal {
@@ -394,53 +334,128 @@ progress {
   background-color: #fafafa;
 }
 
-.action-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.4em;
+.codemirror {
+  flex: 1;
   width: 100%;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.box {
-  padding: 0.5rem;
-  background-color: #f4f4f5d9;
-  margin: 0.5em 0;
+.codemirror textarea,
+.codemirror .target:not(:empty),
+.codemirror .cm-editor {
+  width: 100%;
+  height: 100%;
+  font-size: 1.2rem;
 }
 
-.box > :first-child {
-  margin-top: 0;
+.codemirror .cm-editor {
+  border: 1px solid #e5e7eb;
 }
 
-.box > :last-child {
-  margin-bottom: 0;
+.codemirror textarea {
+  font-family: monospace;
+  line-height: 1.4;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: 2px solid #e5e7eb;
 }
 
-.box h3 {
-  margin-bottom: 0.5em;
+.codemirror textarea:focus,
+.codemirror .cm-focused {
+  outline: none;
+  box-shadow: none;
+  border: 1px dotted #212121;
 }
 
-.box p {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+.codemirror .cm-editor {
+  padding: 0;
+  border-width: 1px;
 }
 
-.box.collab {
-  display: none;
+.codemirror .cm-line {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
 
-.box.collab:has(li:nth-child(2)) {
-  display: block;
+.codemirror .cm-content {
+  padding-top: 0.5rem;
+  padding-bottom: 0.75rem;
 }
 
-.placeholder-text {
-  font-size: 0.9em;
-  opacity: 0.7;
-  text-align: center;
+/* Branded colors */
+
+:root {
+  --erl: rgb(220, 38, 38);
+  --erl-fg: hsl(from var(--erl) h s calc(l + 20));
+  --erl-bg: rgba(from var(--erl) r g b / 20%);
+  --ex: rgb(147, 51, 234);
+  --ex-fg: hsl(from var(--ex) h s calc(l + 20));
+  --ex-bg: rgba(from var(--ex) r g b / 20%);
+  --phx: rgb(253, 79, 0);
+  --phx-fg: hsl(from var(--phx) h s calc(l + 20));
+  --phx-bg: rgba(from var(--phx) r g b / 20%);
 }
 
-.shell {
+@media (prefers-color-scheme: light) {
+  .stats {
+    --erl-fg: hsl(from var(--erl) h s calc(l - 10));
+    --ex-fg: hsl(from var(--ex) h s calc(l - 10));
+    --phx-fg: hsl(from var(--phx) h s calc(l - 10));
+  }
+}
+
+.erl {
+  color: var(--erl-fg);
+  background: var(--erl-bg);
+}
+
+.ex {
+  color: var(--ex-fg);
+  background: var(--ex-bg);
+}
+
+.phx {
+  color: var(--phx-fg);
+  background: var(--phx-bg);
+}
+
+/* Leftover Tailwind classes */
+.size-6 {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.size-5 {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.size-3 {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+/* Hacks to make my JS hacks work :) */
+[data-submit-loading] [data-disable-with],
+[data-submit-loading] button:has([data-disable-with]) {
+  pointer-events: none;
+}
+
+/* Hacks to ensure my layout doesn't fuck itself up
+   due to elements inserted by Phoenix LiveView. */
+html, body {
+  height: 100%;
+}
+body > div {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
+}
+body > div > main {
+  flex-grow: 1;
+  overflow: hidden;
 }
