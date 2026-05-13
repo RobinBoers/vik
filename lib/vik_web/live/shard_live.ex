@@ -227,7 +227,7 @@ defmodule VikWeb.ShardLive do
 
         <div id="sidebar">
           <header class="bar">
-            <h2>{@shard.title} <span class="dot" style={"color: #{dot_color(@status)}"}></span></h2>
+            <h2 title={"#{@shard.title} — #{@status}"}>{@shard.title} <span class="dot" style={"color: #{dot_color(@status)}"}></span></h2>
             <a
               :if={plug_exposed?(@compiled)}
               href={"/api/#{@shard.slug}"}
