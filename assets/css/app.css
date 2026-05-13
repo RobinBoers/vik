@@ -172,6 +172,10 @@ ul li time {
   overflow-y: auto;
 }
 
+#shard #sidebar h3 {
+  margin-bottom: 0.2em;
+}
+
 #shard #logs {
   grid-area: logs;
 }

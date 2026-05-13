@@ -259,7 +259,7 @@ defmodule VikWeb.ShardLive do
               </li>
             </ul>
           </div>
-          <div :if={length(@dependencies) >= 1} class="box">
+          <div :if={length(@dependencies) >= 1}>
             <h3>Dependencies</h3>
 
             <ul>
@@ -270,7 +270,7 @@ defmodule VikWeb.ShardLive do
               </li>
             </ul>
           </div>
-          <div :if={length(@dependents) >= 1} class="box">
+          <div :if={length(@dependents) >= 1}>
             <h3>Dependents</h3>
 
             <ul>
@@ -281,7 +281,7 @@ defmodule VikWeb.ShardLive do
               </li>
             </ul>
           </div>
-          <div :if={length(@group) > 1} class="box">
+          <div :if={length(@group) > 1}>
             <h3>Group</h3>
 
             <ul>
