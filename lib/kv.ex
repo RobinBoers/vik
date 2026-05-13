@@ -215,18 +215,18 @@ defmodule KV do
     |> Enum.each(&:dets.close/1)
   end
 
-  defp ensure_table!(state, table)
+  defp ensure_table!(%State{} = state, table)
     when is_map_key(state.tables, table), do: state
 
-  defp ensure_table!(state, table) when is_atom(table) do
+  defp ensure_table!(%State{} = state, table) when is_atom(table) do
     path = construct_path(state.root, table)
 
     case :dets.open_file(table, file: path, type: :set) do
       {:ok, ^table} ->
-        %State{state | tables: Map.put(state, table, true)}
+        %State{state | tables: Map.put(state.tables, table, true)}
 
       {:error, {:already_exists, ^table}} ->
-        %State{state | tables: Map.put(state, table, true)}
+        %State{state | tables: Map.put(state.tables, table, true)}
 
       {:error, reason} ->
         raise "Failed to open table #{inspect(table)}: #{inspect(reason)}"
