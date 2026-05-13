@@ -67,7 +67,7 @@ defmodule Vik.MixProject do
       {:req, "~> 0.5.10"},
       {:gen_smtp, "~> 1.2"},
       {:earmark, "~> 1.4"},
-      {:nym, "~> 0.0.1-rc1"},
+      {:nym, "~> 0.0.1-rc2"},
 
       # For documentation :)
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
