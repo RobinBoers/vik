@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
 
+    <!-- Google, please don't mess with my lovingly handcrafted HTML -->
+    <meta name="googlebot" content="notranslate" />
+    <meta name="generator" content={"Phoenix #{Application.spec(:phoenix, :vsn)}"} />
+
     <.live_title default="Vik">
       {assigns[:page_title]}
     </.live_title>
