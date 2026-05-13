@@ -60,6 +60,6 @@ defmodule VikWeb.ShardController do
   # is almost never desired behaviour. JSON is a sane default.
 
   defp put_content_type(conn, _opts) do
-    put_resp_content_type(conn, "application/json")
+    put_resp_content_type(conn, "text/plain")
   end
 end
