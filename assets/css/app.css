@@ -25,40 +25,16 @@ ul {
   list-style: none;
 }
 
-ul li:has(.actions),
-ul li:not(:has(.actions)) a {
+ul li {
+  position: relative;
+}
+
+ul li a {
   display: block;
   text-decoration: none;
   padding: 0.7em 1em;
   margin-bottom: 0.25em;
   background: light-dark(#f1f1f1, #2b2b33);
-}
-
-ul li:has(.actions) {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-right: 0.7em;
-}
-
-ul li .actions a {
-  background: black;
-  color: white;
-  padding: 0.5em 0.75em;
-  margin-left: 0.25em;
-  font-size: 0.8em;
-  line-height: 1.5;
-  text-transform: lowercase;
-  text-decoration: none;
-  cursor: default;
-
-  &:hover {
-    opacity: 0.8;
-  }
-}
-
-ul li {
-  position: relative;
 }
 
 ul li time {
