@@ -1,4 +1,4 @@
-host: november.geheimesite.nl
+host: nov
 image: robinboers/vik
 registry: ghcr.io
 services:
