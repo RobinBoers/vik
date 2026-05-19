@@ -7,8 +7,7 @@ defmodule Vik.Scry do
 
   - `SCRY_ENDPOINT`: the API root of a Scry instance. For example:
     `"https://scry.dupunkto.org"`.
-
-  - `SCRY_SECRET`: the secret to authenticate API requests and
+  - `SCRY_TOKEN`: the secret to authenticate API requests and
     webhook calls.
 
   If neither of these variables is configured, Scry functionality will be

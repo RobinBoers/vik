@@ -38,7 +38,7 @@ case System.get_env("AUTH_PROVIDER", "basic") do
     raise "Unknown auth provider '#{provider}'."
 end
 
-case {System.get_env("SCRY_ENDPOINT"), System.get_env("SCRY_SECRET")} do
+case {System.get_env("SCRY_ENDPOINT"), System.get_env("SCRY_TOKEN")} do
   {nil, _} ->
     :ok
 
@@ -46,7 +46,7 @@ case {System.get_env("SCRY_ENDPOINT"), System.get_env("SCRY_SECRET")} do
     require Logger
 
     Logger.warning("""
-    SCRY_ENDPOINT is set, but SCRY_SECRET is missing.
+    SCRY_ENDPOINT is set, but SCRY_TOKEN is missing.
     Scry integration will be disabled.
     """)
 
