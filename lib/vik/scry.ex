@@ -6,7 +6,9 @@ defmodule Vik.Scry do
   ## Usage
 
   - `SCRY_ENDPOINT`: the API root of a Scry instance. For example:
-    `"https://scry.dupunkto.org"`.
+    `"https://scry:4000"` (internal docker hostname).
+  - `SCRY_URL`: public URL of a Scry instance. For example:
+    `"https://scry.dupunkto.org"`. If unset, falls back to `SCRY_ENDPOINT`.
   - `SCRY_TOKEN`: the secret to authenticate API requests and
     webhook calls.
 
@@ -27,7 +29,8 @@ defmodule Vik.Scry do
           timestamp: integer()
         }
 
-  defp base_url, do: Application.get_env(:vik, :scry, [])[:endpoint]
+  defp api_url, do: Application.get_env(:vik, :scry, [])[:endpoint]
+  defp public_url, do: Application.get_env(:vik, :scry, [])[:url]
   defp secret, do: Application.get_env(:vik, :scry, [])[:secret]
 
   @doc """
@@ -35,7 +38,7 @@ defmodule Vik.Scry do
   """
   @spec enabled?() :: boolean()
   def enabled? do
-    not is_nil(base_url()) and not is_nil(secret())
+    not is_nil(api_url()) and not is_nil(secret())
   end
 
   @doc """
@@ -43,8 +46,8 @@ defmodule Vik.Scry do
   """
   @spec revision_url(String.t()) :: String.t() | nil
   def revision_url(sha) when is_binary(sha) do
-    if base_url = base_url() do
-      "#{base_url}/rev/#{sha}"
+    if public_url = public_url() do
+      "#{public_url}/rev/#{sha}"
     end
   end
 
@@ -53,8 +56,8 @@ defmodule Vik.Scry do
   """
   @spec object_url(String.t()) :: String.t() | nil
   def object_url(object) when is_binary(object) do
-    if base_url = base_url() do
-      "#{base_url}/object/#{URI.encode(object)}"
+    if public_url = public_url() do
+      "#{public_url}/object/#{URI.encode(object)}"
     end
   end
 
@@ -63,11 +66,11 @@ defmodule Vik.Scry do
   """
   @spec history(String.t()) :: history() | nil
   def history(object) when is_binary(object) do
-    base_url = base_url()
+    api_url = api_url()
     secret = secret()
 
-    if base_url && secret do
-      url = "#{base_url}/api/history/#{URI.encode(object, &URI.char_unreserved?/1)}"
+    if enabled?() do
+      url = "#{api_url}/api/history/#{URI.encode(object, &URI.char_unreserved?/1)}"
 
       case Req.get(url, params: [token: secret]) do
         {:ok, %Req.Response{status: 200, body: body}} ->
@@ -95,11 +98,11 @@ defmodule Vik.Scry do
   """
   @spec track(String.t(), String.t()) :: :ok | {:error, term()}
   def track(object, source) when is_binary(object) and is_binary(source) do
-    base_url = base_url()
+    api_url = api_url()
     secret = secret()
 
-    if base_url && secret do
-      url = "#{base_url}/api/track/#{URI.encode(object, &URI.char_unreserved?/1)}"
+    if enabled?() do
+      url = "#{api_url}/api/track/#{URI.encode(object, &URI.char_unreserved?/1)}"
 
       case Req.post(url, params: [token: secret], form: [source_code: source]) do
         {:ok, %Req.Response{status: 200}} -> :ok
@@ -117,11 +120,11 @@ defmodule Vik.Scry do
   """
   @spec squash(String.t(), String.t()) :: :ok | {:error, term()}
   def squash(object, message) when is_binary(object) and is_binary(message) do
-    base_url = base_url()
+    api_url = api_url()
     secret = secret()
 
-    if base_url && secret do
-      url = "#{base_url}/api/squash/#{URI.encode(object, &URI.char_unreserved?/1)}"
+    if enabled?() do
+      url = "#{api_url}/api/squash/#{URI.encode(object, &URI.char_unreserved?/1)}"
 
       case Req.post(url, params: [token: secret], form: [message: message]) do
         {:ok, %Req.Response{status: 200}} ->

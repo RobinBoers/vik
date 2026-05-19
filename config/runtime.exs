@@ -52,7 +52,8 @@ case {System.get_env("SCRY_ENDPOINT"), System.get_env("SCRY_TOKEN")} do
 
   {endpoint, secret} when is_binary(endpoint) and is_binary(secret) ->
     endpoint = String.trim_trailing(endpoint, "/")
-    config :vik, scry: [endpoint: endpoint, secret: secret]
+    url = System.get_env("SCRY_ENDPOINT", endpoint)
+    config :vik, scry: [endpoint: endpoint, secret: secret, url: url]
 
     unless System.get_env("SCRY_WEBHOOK") do
       System.put_env("SCRY_WEBHOOK", "#{endpoint}/webhook/#{secret}")

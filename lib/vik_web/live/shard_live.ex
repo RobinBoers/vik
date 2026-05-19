@@ -328,35 +328,35 @@ defmodule VikWeb.ShardLive do
               </li>
             </ul>
           </div>
-        </div>
 
-        <div :if={@history} id="vcs">
-          <h3 class="split">
-            Version control
-            <small>{length(@history.revisions)} revisions</small>
-          </h3>
+          <div :if={@history} id="vcs">
+            <h3 class="split">
+              Version control
+              <small>{length(@history.revisions)} revisions</small>
+            </h3>
 
-          <div :if={@history.pending > 0} class="box">
-            <input name="message" placeholder="Enter revision message...">
+            <div :if={@history.pending > 0} class="box">
+              <input name="message" placeholder="Enter revision message...">
 
-            <.button id="squash" class="action-button" name="action" value="squash">
-              <.icon name="hero-check" /> <span data-disable-with="Squashing...">Squash</span>
-            </.button>
+              <.button id="squash" class="action-button" name="action" value="squash">
+                <.icon name="hero-check" /> <span data-disable-with="Squashing...">Squash</span>
+              </.button>
+            </div>
+
+            <ul :if={@history.pending > 0 or @history.revisions != []} class="revisions">
+              <li :if={@history.pending > 0} class="pending">
+                {@history.pending} unsquashed edits
+              </li>
+              <li :for={revision <- Enum.take(@history.revisions, 5)}>
+                <a href={Scry.revision_url(revision.sha)} target="_blank">
+                  {revision.message}
+                  <time datetime={DateTime.from_unix!(revision.timestamp) |> DateTime.to_iso8601()}>
+                    {format_date(revision.timestamp)}
+                  </time>
+                </a>
+              </li>
+            </ul>
           </div>
-
-          <ul :if={@history.pending > 0 or @history.revisions != []} class="revisions">
-            <li :if={@history.pending > 0} class="pending">
-              {@history.pending} unsquashed edits
-            </li>
-            <li :for={revision <- Enum.take(@history.revisions, 5)}>
-              <a href={Scry.revision_url(revision.sha)} target="_blank">
-                {revision.message}
-                <time datetime={DateTime.from_unix!(revision.timestamp) |> DateTime.to_iso8601()}>
-                  {format_date(revision.timestamp)}
-                </time>
-              </a>
-            </li>
-          </ul>
         </div>
 
         <.terminal id="logs" lines={@streams.logs} scroll />
