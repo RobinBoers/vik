@@ -18,6 +18,8 @@ defmodule Vik.Webhook do
 
   """
 
+  alias Vik.PubSub
+
   import Structo
 
   @typedoc """
@@ -37,6 +39,20 @@ defmodule Vik.Webhook do
         event: event(),
         content: term()
       }
+
+  @topic "@webhook/"
+
+  @doc """
+  Subscribes the calling process to webhook completion
+  notifications.
+
+  Every time a webhook finishes posting, subscribers
+  receive `{:webhook, event}`.
+  """
+  @spec subscribe(String.t()) :: :ok | :error
+  def subscribe(topic) when is_binary(topic) do
+    PubSub.subscribe(@topic <> topic)
+  end
 
   @doc """
   Sends a message to a user-defined webhook.
@@ -67,7 +83,16 @@ defmodule Vik.Webhook do
 
   defp async_push(scope, event, content) do
     if url = webhook_url(scope) do
-      spawn(fn -> Req.post!(url, json: ~m{event, content}) end)
+      spawn(fn ->
+        Req.post!(url, json: ~m{event, content})
+
+        # This introduces a little bit of tight coupling.
+        # Ideally, the Webhook module is independent of Shards,
+        # however, this makes life a lot easier.
+        with %Vik.Shard{slug: topic} <- content do
+          PubSub.broadcast(@topic <> topic, {:webhook, event})
+        end
+      end)
     end
   end
 

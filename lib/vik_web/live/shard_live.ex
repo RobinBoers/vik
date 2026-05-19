@@ -5,6 +5,7 @@ defmodule VikWeb.ShardLive do
   alias Vik.Authority
   alias Vik.Presence
   alias Vik.Repo
+  alias Vik.Scry
   alias Vik.Store
   alias Vik.Shard
   alias Vik.Result
@@ -39,6 +40,7 @@ defmodule VikWeb.ShardLive do
       Authority.join(shard.slug, uid)
       Presence.subscribe(shard.slug)
       PubSub.subscribe(shard.slug)
+      Webhook.subscribe(shard.slug)
     end
 
     socket
@@ -48,8 +50,13 @@ defmodule VikWeb.ShardLive do
     |> assign_compiled(shard)
     |> assign_group(shard)
     |> assign_dependents(shard)
+    |> assign_history(shard)
     |> assign_changeset(shard)
     |> stream_lines(:logs)
+  end
+
+  defp assign_history(socket, shard) do
+    assign(socket, :history, Scry.history(shard.slug))
   end
 
   defp assign_compiled(socket, shard) do
@@ -120,6 +127,19 @@ defmodule VikWeb.ShardLive do
   end
 
   @impl true
+  def handle_event("submit", %{"action" => "squash", "message" => message}, socket) do
+    %Shard{} = shard = socket.assigns.shard
+
+    case Scry.squash(shard.slug, message) do
+      :ok ->
+        {:noreply, assign_history(socket, shard)}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Squash failed: #{inspect(reason)}")}
+    end
+  end
+
+  @impl true
   def handle_event("cancel-deploy", _params, socket) do
     if task = socket.assigns.task do
       Task.shutdown(task)
@@ -160,6 +180,11 @@ defmodule VikWeb.ShardLive do
   def handle_info({:collab, updates}, socket) do
     VikWeb.CodeMirror.sync("source-code", updates)
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:webhook, _event}, socket) do
+    {:noreply, assign_history(socket, socket.assigns.shard)}
   end
 
   @impl true
@@ -305,6 +330,35 @@ defmodule VikWeb.ShardLive do
           </div>
         </div>
 
+        <div :if={@history} id="vcs">
+          <h3 class="split">
+            Version control
+            <small>{length(@history.revisions)} revisions</small>
+          </h3>
+
+          <div :if={@history.pending > 0} class="box">
+            <input name="message" placeholder="Enter revision message...">
+
+            <.button id="squash" class="action-button" name="action" value="squash">
+              <.icon name="hero-check" /> <span data-disable-with="Squashing...">Squash</span>
+            </.button>
+          </div>
+
+          <ul :if={@history.pending > 0 or @history.revisions != []} class="revisions">
+            <li :if={@history.pending > 0} class="pending">
+              {@history.pending} unsquashed edits
+            </li>
+            <li :for={revision <- Enum.take(@history.revisions, 5)}>
+              <a href={Scry.revision_url(revision.sha)} target="_blank">
+                {revision.message}
+                <time datetime={DateTime.from_unix!(revision.timestamp) |> DateTime.to_iso8601()}>
+                  {format_date(revision.timestamp)}
+                </time>
+              </a>
+            </li>
+          </ul>
+        </div>
+
         <.terminal id="logs" lines={@streams.logs} scroll />
       </.form>
     </main>
@@ -342,6 +396,10 @@ defmodule VikWeb.ShardLive do
   def dot_color(:stale), do: "#fbbf24"
   def dot_color(:up), do: "#4ade80"
   def dot_color(:down), do: "#f87171"
+
+  defp format_date(timestamp) do
+    timestamp |> DateTime.from_unix!() |> Calendar.strftime("%Y-%m-%d")
+  end
 
   defp format_export(export) when is_atom(export) do
     to_string(export)

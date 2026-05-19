@@ -38,6 +38,27 @@ case System.get_env("AUTH_PROVIDER", "basic") do
     raise "Unknown auth provider '#{provider}'."
 end
 
+case {System.get_env("SCRY_ENDPOINT"), System.get_env("SCRY_SECRET")} do
+  {nil, _} ->
+    :ok
+
+  {endpoint, nil} when is_binary(endpoint) ->
+    require Logger
+
+    Logger.warning("""
+    SCRY_ENDPOINT is set, but SCRY_SECRET is missing.
+    Scry integration will be disabled.
+    """)
+
+  {endpoint, secret} when is_binary(endpoint) and is_binary(secret) ->
+    endpoint = String.trim_trailing(endpoint, "/")
+    config :vik, scry: [endpoint: endpoint, secret: secret]
+
+    unless System.get_env("SCRY_WEBHOOK") do
+      System.put_env("SCRY_WEBHOOK", "#{endpoint}/webhook/#{secret}")
+    end
+end
+
 # ## Using releases
 #
 # If you use `mix release`, you need to explicitly enable the server

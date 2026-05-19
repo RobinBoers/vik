@@ -147,7 +147,15 @@ ul li time {
     "logs logs";
 }
 
-#shard #code-wrapper {
+#shard:has(#vcs) {
+  grid-template-rows: minmax(0, 1fr) 100px 200px;
+  grid-template-areas:
+    "editor sidebar"
+    "editor vcs"
+    "logs vcs";
+}
+
+#shard #source-code-wrapper {
   grid-area: editor;
 }
 
@@ -179,7 +187,8 @@ ul li time {
   grid-template-areas: "editor sidebar";
   grid-template-rows: 1fr;
 }
-#shard.nologs #logs {
+#shard.nologs #logs,
+#shard.nologs #vcs {
   display: none;
 }
 
@@ -218,11 +227,11 @@ ul li time {
   margin-bottom: 0.5rem;
 }
 
-#shard .box.collab {
+#shard .collab {
   display: none;
 }
 
-#shard .box.collab:has(li:nth-child(2)) {
+#shard .collab:has(li:nth-child(2)) {
   display: block;
 }
 
@@ -231,6 +240,48 @@ ul li time {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.25em;
+}
+
+#shard #vcs {
+  grid-area: vcs;
+  overflow-y: auto;
+}
+
+#shard #vcs ul,
+#shard #vcs ul li:last-of-type a {
+  margin-bottom: 0;
+}
+
+#shard #vcs h3.split {
+  margin: 0 0 0.5em;
+}
+
+#shard #vcs input {
+  width: 100%;
+  font-size: 1.2em;
+  padding: 5px 10px;
+}
+
+#shard #vcs button {
+  width: 100%;
+  margin-top: 0.5em;
+}
+
+#shard #vcs .split {
+  align-items: flex-end;
+}
+
+#shard #vcs .split small {
+  font-weight: normal;
+  font-size: 0.75em;
+}
+
+#shard #vcs li.pending {
+  display: block;
+  padding: 0.7em 1em;
+  margin-bottom: 0.25em;
+  background: light-dark(#f1f1f1, #2b2b33);
+  opacity: 0.6;
 }
 
 /* Shell & log */

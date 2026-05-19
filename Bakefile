@@ -2,6 +2,9 @@
 
 export AUTH_PASSWORD=pannekoek
 
+export SCRY_ENDPOINT=http://localhost:4002
+export SCRY_SECRET=oompaloompadoompadeedo
+
 setup() {
 	mix deps.get
 	mix deps.compile
