@@ -246,7 +246,7 @@ ul li time {
 #shard #vcs {
   margin-top: auto;
   overflow-y: auto;
-  max-height: 310px;
+  height: 310px;
 }
 
 #shard #vcs ul,
