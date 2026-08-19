@@ -1,27 +1,19 @@
 #!/bin/sh
 
+use elixir
+use phoenix
+
 export AUTH_PASSWORD=pannekoek
 
-setup() {
-	mix deps.get
-	mix deps.compile
-	mix ecto.setup
-}
+export SCRY_ENDPOINT=http://localhost:4002
+export SCRY_TOKEN=oompaloompadoompadeedo
 
-serve() {
-	mix phx.server
+setup() {
+	super
+	mix ecto.setup
 }
 
 deploy() {
 	lift deploy vik
 	lift deploy fog
-}
-
-publish() {
-	mix docs
-	lift deploy docs
-}
-
-release() {
-	mix hex.publish
 }
