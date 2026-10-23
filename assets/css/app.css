@@ -245,8 +245,16 @@ ul li time {
 
 #shard #vcs {
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 content;
+  height: 160px;
+  max-height: 310px;
+}
+
+#shard #vcs .scroll {
+  min-height: 0;
   overflow-y: auto;
-  height: 310px;
 }
 
 #shard #vcs ul,
