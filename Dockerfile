@@ -1,31 +1,34 @@
 # Find eligible builder and runner images on Docker Hub. We use Ubuntu/Debian
 # instead of Alpine to avoid DNS resolution issues in production.
+# Builder and runner must use the same Ubuntu release, otherwise the release
+# links against libraries (OpenSSL, glibc) the runner doesn't have.
 #
-# https://hub.docker.com/r/hexpm/elixir/tags?page=1&name=ubuntu
-# https://hub.docker.com/_/ubuntu?tab=tags
+#   - https://hub.docker.com/r/hexpm/elixir/tags?name=ubuntu-noble
+#   - https://hub.docker.com/_/ubuntu/tags?name=noble
 #
-# This file is based on these images:
+# Chrome and chromedriver are pulled from Chrome for Testing, which publishes both at
+# matching versions. Wallaby refuses (or at lease complains loudly) to run when they differ.
 #
-#   - https://hub.docker.com/r/hexpm/elixir/tags - for the build image
-#   - https://hub.docker.com/_/debian?tab=tags&page=1&name=bullseye-20250317-slim - for the release image
-#   - Ex: hexpm/elixir:1.18.3-erlang-26.0.2-debian-bullseye-20250317-slim
+#   - https://googlechromelabs.github.io/chrome-for-testing/
 
-ARG ELIXIR_VERSION=1.18.3
-ARG OTP_VERSION=26.0.2
-ARG UBUNTU_VERSION=jammy-20250126
+ARG ELIXIR_VERSION=1.18.4
+ARG OTP_VERSION=28.0.1
+ARG UBUNTU_VERSION=noble-20260509.1
+ARG CHROME_VERSION=156.0.8078.47
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-ubuntu-${UBUNTU_VERSION}"
 ARG RUNNER_IMAGE="ubuntu:${UBUNTU_VERSION}"
 
 FROM ${BUILDER_IMAGE} AS builder
 
-RUN apt-get update -y && apt-get install -y build-essential git npm \
-    && apt-get clean && rm -f /var/lib/apt/lists/*_*
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends build-essential git npm \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-RUN mix local.hex --force && \
-    mix local.rebar --force
+RUN mix local.hex --force \
+  && mix local.rebar --force
 
 ENV MIX_ENV="prod"
 
@@ -39,10 +42,11 @@ RUN mkdir config
 COPY config/config.exs config/${MIX_ENV}.exs config/
 RUN mix deps.compile
 
+COPY assets/package.json assets/package-lock.json assets/
+RUN npm ci --prefix assets
+
 COPY priv priv
 COPY assets assets
-RUN npm i --prefix assets
-
 COPY lib lib
 
 RUN mix assets.deploy
@@ -54,29 +58,42 @@ COPY config/runtime.exs config/
 COPY rel rel
 RUN mix release
 
+FROM ${RUNNER_IMAGE} AS chrome
+
+ARG CHROME_VERSION
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates curl unzip \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt
+
+RUN for pkg in chrome chromedriver; do \
+    curl -fsSLo "$pkg.zip" "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/$pkg-linux64.zip" \
+    && unzip -q "$pkg.zip" \
+    && mv "$pkg-linux64" "$pkg" \
+    && rm "$pkg.zip"; \
+  done
+
 FROM ${RUNNER_IMAGE}
 
-RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses6 locales ca-certificates tzdata wget curl gnupg \
-  && apt-get clean && rm -f /var/lib/apt/lists/*_*
+RUN --mount=type=bind,from=chrome,source=/opt/chrome/deb.deps,target=/tmp/deb.deps \
+  apt-get update \
+  && apt-get install -y --no-install-recommends \
+    libstdc++6 openssl libncurses6 ca-certificates tzdata \
+  && apt-get satisfy -y --no-install-recommends "$(paste -sd, /tmp/deb.deps)" \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
-RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-RUN apt-get -y update
-RUN apt-get install -y google-chrome-stable
-
-RUN apt-get install -yqq unzip
-RUN wget -O /tmp/chromedriver.zip https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/linux64/chromedriver-linux64.zip
-RUN unzip /tmp/chromedriver.zip -d /tmp
-RUN mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/
-
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+COPY --from=chrome /opt/chrome /opt/chrome
+COPY --from=chrome /opt/chromedriver /opt/chromedriver
+RUN ln -s /opt/chrome/chrome /usr/local/bin/google-chrome \
+  && ln -s /opt/chromedriver/chromedriver /usr/local/bin/chromedriver
 
 ENV LANG="en_US.UTF-8"
 ENV LANGUAGE="en_US:en"
 ENV LC_ALL="en_US.UTF-8"
 
-WORKDIR "/app"
+WORKDIR /app
 RUN chown nobody /app
 
 ENV MIX_ENV="prod"
