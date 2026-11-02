@@ -1,4 +1,4 @@
-host: nov.dupunk.to
+runner: nov.dupunk.to
 image: robinboers/vik
 registry: ghcr.io
 services:
