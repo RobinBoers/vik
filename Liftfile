@@ -1,4 +1,4 @@
-runner: nov.dupunk.to
+cluster: dupunk.to
 image: robinboers/vik
 registry: ghcr.io
 services:
